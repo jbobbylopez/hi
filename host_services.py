@@ -1,4 +1,21 @@
 import subprocess
+import socket
+
+def get_ip_address():
+    # Create a socket object
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # Connect to a remote server (doesn't have to be reachable)
+        sock.connect(("8.8.8.8", 80))
+        # Get the local IP address
+        ip_address = sock.getsockname()[0]
+    finally:
+        # Close the socket to release resources
+        sock.close()
+    return ip_address
+
+# Get and print the local IP address
+local_ip = get_ip_address()
 
 def check_service(service, command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -10,7 +27,7 @@ def host_services():
         "minidlna": "ps -ef | grep -E '([m]inidlna)'",
         "backup": "stat ~/.jbl-backup.log | grep ^Modify",
         "expressvpn": "expressvpn status | grep -i connected",
-        "dropbox": "ps -ef | grep [d]ropbox"
+        "dropbox": "ps -ef | grep [d]ropbox",
     }
 
     print("[- VDC Host Services -]")
@@ -27,6 +44,8 @@ def host_services():
             print(f"[❌] {service} is not running")
 
     print("")
+    print("IP address:", local_ip)
+
 
 # Call the function to execute
 host_services()
