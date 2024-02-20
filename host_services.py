@@ -9,7 +9,8 @@ def host_services():
         "qbittorrent": "ps -ef | grep -E '([q]bittorrent)'",
         "minidlna": "ps -ef | grep -E '([m]inidlna)'",
         "backup": "stat ~/.jbl-backup.log | grep ^Modify",
-        "expressvpn": "expressvpn status | grep -i connected"
+        "expressvpn": "expressvpn status | grep -i connected",
+        "dropbox": "ps -ef | grep [d]ropbox"
     }
 
     print("[- VDC Host Services -]")
