@@ -1,5 +1,6 @@
 import subprocess
 import socket
+import re
 
 def get_ip_address():
     # Create a socket object
@@ -26,7 +27,7 @@ def host_services():
         "qbittorrent": "ps -ef | grep -E '([q]bittorrent)'",
         "minidlna": "ps -ef | grep -E '([m]inidlna)'",
         "backup": "stat ~/.jbl-backup.log | grep ^Modify",
-        "expressvpn": "expressvpn status | grep -i connected",
+        "expressvpn": "expressvpn status | grep -i connected | sed \"s/\\x1b\[[0-9;]*[mGK]//g\"",
         "dropbox": "ps -ef | grep [d]ropbox",
         "keepassxc": "ps -ef | grep -i '[b]in/keepassxc'"
     }
@@ -40,7 +41,7 @@ def host_services():
             if service == "backup":
                 print(f"[✅] Backup Status: {output.strip()}")
             if service == "expressvpn":
-                if output.strip() == "Connected":
+                if re.search("Connected", output.strip()):
                     print(f"[✅] ExpressVPN Status: {output.strip()}")
                 else:
                     print(f"[❌] ExpressVPN Status: {output.strip()}")
