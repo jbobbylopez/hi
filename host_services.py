@@ -28,6 +28,7 @@ def host_services():
         "backup": "stat ~/.jbl-backup.log | grep ^Modify",
         "expressvpn": "expressvpn status | grep -i connected",
         "dropbox": "ps -ef | grep [d]ropbox",
+        "keepassxc": "ps -ef | grep -i '[b]in/keepassxc'"
     }
 
     print("[- VDC Host Services -]")
@@ -38,6 +39,11 @@ def host_services():
         if output:
             if service == "backup":
                 print(f"[✅] Backup Status: {output.strip()}")
+            if service == "expressvpn":
+                if output.strip() == "Connected":
+                    print(f"[✅] ExpressVPN Status: {output.strip()}")
+                else:
+                    print(f"[❌] ExpressVPN Status: {output.strip()}")
             else:
                 print(f"[✅] {service} is running")
         else:
