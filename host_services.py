@@ -29,7 +29,8 @@ def host_services():
         "backup": "stat ~/.jbl-backup.log | grep ^Modify",
         "expressvpn": "expressvpn status | grep -i connected | sed \"s/\\x1b\[[0-9;]*[mGK]//g\"",
         "dropbox": "ps -ef | grep [d]ropbox",
-        "keepassxc": "ps -ef | grep -i '[b]in/keepassxc'"
+        "keepassxc": "ps -ef | grep -i '[b]in/keepassxc'",
+        "nifi": "ps -ef | grep -i '[o]pt/nifi'"
     }
 
     print("[- VDC Host Services -]")
