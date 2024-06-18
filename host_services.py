@@ -1,6 +1,7 @@
 import subprocess
 import socket
 import re
+from datetime import datetime, timedelta
 
 def get_ip_address():
     # Create a socket object
@@ -40,7 +41,13 @@ def host_services():
 
         if output:
             if service == "backup":
-                print(f"[✅] Backup Status: {output.strip()}")
+                backup_date_str = output.strip().split(' ')[1]  # Extract the date part
+                backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
+                # print(f"[✅] Backup Status: {output.strip()}")
+                if datetime.now() - backup_date > timedelta(days=7):
+                    print(f"[❌] Backup Status: Last modified date {backup_date_str} is older than 7 days")
+                else:
+                    print(f"[✅] Backup Status: Last modified date {backup_date_str} is within 7 days")
             if service == "expressvpn":
                 if re.search("Connected", output.strip()):
                     print(f"[✅] ExpressVPN Status: {output.strip()}")
