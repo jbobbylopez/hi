@@ -48,7 +48,7 @@ def host_services():
                     print(f"[❌] Backup Status: Last modified date {backup_date_str} is older than 7 days")
                 else:
                     print(f"[✅] Backup Status: Last modified date {backup_date_str} is within 7 days")
-            if service == "expressvpn":
+            elif service == "expressvpn":
                 if re.search("Connected", output.strip()):
                     print(f"[✅] ExpressVPN Status: {output.strip()}")
                 else:
