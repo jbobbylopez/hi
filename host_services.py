@@ -27,14 +27,15 @@ def host_services():
     service_checks = {
         "qbittorrent": "ps -ef | grep -E '([q]bittorrent)'",
         "minidlna": "ps -ef | grep -E '([m]inidlna)'",
-        "backup": "stat ~/.jbl-backup.log | grep ^Modify",
-        "expressvpn": "expressvpn status | grep -i connected | sed \"s/\\x1b\[[0-9;]*[mGK]//g\"",
-        "dropbox": "ps -ef | grep [d]ropbox",
-        "keepassxc": "ps -ef | grep -i '[b]in/keepassxc'",
-        "nifi": "ps -ef | grep -i '[o]pt/nifi'"
+        "Data Backup": "stat ~/.jbl-backup.log | grep ^Modify",
+        "Expressvpn": "expressvpn status | grep -i connected | sed \"s/\\x1b\[[0-9;]*[mGK]//g\"",
+        "Dropbox": "ps -ef | grep [d]ropbox",
+        "KeepassXC": "ps -ef | grep -i '[b]in/keepassxc'",
+        "Apache Nifi": "ps -ef | grep -i '[o]pt/nifi'",
+        "Open WebUI": "curl localhost:3000 --silent |grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'"
     }
 
-    print("[- VDC Host Services -]")
+    print("[- VDC Host Services (" + local_ip +") -]")
 
     for service, command in service_checks.items():
         output = check_service(service, command)
@@ -58,9 +59,8 @@ def host_services():
         else:
             print(f"[❌] {service} is not running")
 
-    print("")
-    print("IP address:", local_ip)
 
+    print("")
 
 # Call the function to execute
 host_services()
