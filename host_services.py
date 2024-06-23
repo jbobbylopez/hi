@@ -41,7 +41,7 @@ def host_services():
         output = check_service(service, command)
 
         if output:
-            if service == "backup":
+            if service == "Data Backup":
                 backup_date_str = output.strip().split(' ')[1]  # Extract the date part
                 backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
                 # print(f"[✅] Backup Status: {output.strip()}")
