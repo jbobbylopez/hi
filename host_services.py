@@ -27,6 +27,7 @@ def host_services():
     service_checks = {
         "qbittorrent": "ps -ef | grep -E '([q]bittorrent)'",
         "minidlna": "ps -ef | grep -E '([m]inidlna)'",
+        "vi": "ps -ef |grep pts.*[v]i$",
         "Data Backup": "stat ~/.jbl-backup.log | grep ^Modify",
         "Expressvpn": "expressvpn status | grep -i connected | sed \"s/\\x1b\[[0-9;]*[mGK]//g\"",
         "Dropbox": "ps -ef | grep [d]ropbox",
