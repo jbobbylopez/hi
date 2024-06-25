@@ -16,8 +16,22 @@ def get_ip_address():
         sock.close()
     return ip_address
 
+
+def get_hostname_address():
+    try:
+        # Get the hostname
+        hostname = socket.gethostname()
+        # Get the IP address corresponding to the hostname
+        ip_address = socket.gethostbyname(hostname)
+    except socket.error as e:
+        print(f"Error occurred: {e}")
+        return None
+    return hostname, ip_address
+
+
 # Get and print the local IP address
 local_ip = get_ip_address()
+hostname, ip_address = get_hostname_address()
 
 def check_service(service, command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -36,7 +50,7 @@ def host_services():
         "Open WebUI": "curl localhost:3000 --silent |grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'"
     }
 
-    print("[- VDC Host Services (" + local_ip +") -]")
+    print("[- Host Information: " + hostname + " (" + ip_address + ") {" + local_ip +"} -]")
 
     for service, command in service_checks.items():
         output = check_service(service, command)
