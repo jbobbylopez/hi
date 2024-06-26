@@ -4,34 +4,35 @@ import re
 from datetime import datetime, timedelta
 
 def get_ip_address():
-    # Create a socket object
+    result = {
+        "ip_address": None,
+        "message": ""
+    }
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # Connect to a remote server (doesn't have to be reachable)
         sock.connect(("8.8.8.8", 80))
-        # Get the local IP address
-        ip_address = sock.getsockname()[0]
+        result["ip_address"] = sock.getsockname()[0]
+        result["message"] = f"Local IP Address: {result['ip_address']}"
+    except socket.error as e:
+        result["message"] = f"Error occurred: {e}"
     finally:
-        # Close the socket to release resources
         sock.close()
-    return ip_address
+    return result
 
 
 def get_hostname_address():
+    result = {
+        "hostname": None,
+        "ip_address": None,
+        "message": ""
+    }
     try:
-        # Get the hostname
-        hostname = socket.gethostname()
-        # Get the IP address corresponding to the hostname
-        ip_address = socket.gethostbyname(hostname)
+        result["hostname"] = socket.gethostname()
+        result["ip_address"] = socket.gethostbyname(result["hostname"])
+        result["message"] = f"Hostname: {result['hostname']}\nIP Address: {result['ip_address']}"
     except socket.error as e:
-        print(f"Error occurred: {e}")
-        return None
-    return hostname, ip_address
-
-
-# Get and print the local IP address
-local_ip = get_ip_address()
-hostname, ip_address = get_hostname_address()
+        result["message"] = f"Error occurred: {e}"
+    return result
 
 def check_service(service, command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -50,7 +51,16 @@ def host_services():
         "Open WebUI": "curl localhost:3000 --silent |grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'"
     }
 
-    print("[- Host Information: " + hostname + " (" + ip_address + ") {" + local_ip +"} -]")
+    output_messages = []
+
+    # Get and print the local IP address
+    local_ip_result = get_ip_address()
+
+    # Get and print the hostname and IP address
+    hostname_result = get_hostname_address()
+
+    # Host Information
+    output_messages.append(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
 
     for service, command in service_checks.items():
         output = check_service(service, command)
@@ -59,23 +69,24 @@ def host_services():
             if service == "Data Backup":
                 backup_date_str = output.strip().split(' ')[1]  # Extract the date part
                 backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
-                # print(f"[✅] Backup Status: {output.strip()}")
                 if datetime.now() - backup_date > timedelta(days=7):
-                    print(f"[❌] Backup Status: Last modified date {backup_date_str} is older than 7 days")
+                    output_messages.append(f"[❌] Backup Status: Last modified date {backup_date_str} is older than 7 days")
                 else:
-                    print(f"[✅] Backup Status: Last modified date {backup_date_str} is within 7 days")
-            elif service == "expressvpn":
+                    output_messages.append(f"[✅] Backup Status: Last modified date {backup_date_str} is within 7 days")
+            elif service == "Expressvpn":
                 if re.search("Connected", output.strip()):
-                    print(f"[✅] ExpressVPN Status: {output.strip()}")
+                    output_messages.append(f"[✅] ExpressVPN Status: {output.strip()}")
                 else:
-                    print(f"[❌] ExpressVPN Status: {output.strip()}")
+                    output_messages.append(f"[❌] ExpressVPN Status: {output.strip()}")
             else:
-                print(f"[✅] {service} is running")
+                output_messages.append(f"[✅] {service} is running")
         else:
-            print(f"[❌] {service} is not running")
+            output_messages.append(f"[❌] {service} is not running")
 
-
-    print("")
+    # Print all output messages
+    final_output = "\n".join(output_messages)
+    print(final_output)
+    print("\n")
 
 # Call the function to execute
 host_services()
