@@ -1,3 +1,5 @@
+from rich.console import Console
+from rich.table import Table
 import subprocess
 import socket
 import re
@@ -59,15 +61,6 @@ def check_engine():
 
     output_messages = []
 
-    # Get and print the local IP address
-    local_ip_result = get_ip_address()
-
-    # Get and print the hostname and IP address
-    hostname_result = get_hostname_address()
-
-    # Host Information
-    output_messages.append(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
-
     for process, command in checks.items():
         output = check_process(process, command)
 
@@ -91,8 +84,43 @@ def check_engine():
 
     # Print all output messages
     final_output = "\n".join(output_messages)
-    print(final_output)
-    print("\n")
+    return final_output
+
+def display_checks():
+    console = Console()
+    process_checks = check_engine()
+    checks = process_checks.split('\n')
+
+    # Get and print the local IP address
+    local_ip_result = get_ip_address()
+
+    # Get and print the hostname and IP address
+    hostname_result = get_hostname_address()
+
+    # Host Information
+    print(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
+
+    # Create a new table
+    table = Table(show_header=True, header_style="bold magenta", expand=True)
+
+    # Define columns
+    table.add_column("Column 1", style="green3", justify="left", no_wrap=True, width=40)
+    table.add_column("Column 2", style="green3", justify="center", no_wrap=True, width=40)
+
+    # Example data
+    col1_data = checks
+    #col2_data = ["Data A", "Data B", "Data C", "Data D"]
+
+    # Add rows to the table with cell borders
+    for data1 in zip(col1_data):
+        table.add_row(
+            #f"[green3][blue]{data1[0]}[/blue][/green3]",
+            f"{data1[0]}",
+            #f"[blue]▌[/blue] [green3]{data2}[/green3]"
+        )
+
+    # Print the table with solid blue borders and solid green cell borders
+    console.print(table)
 
 # Call the function to execute
-check_engine()
+display_checks()
