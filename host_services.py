@@ -34,12 +34,12 @@ def get_hostname_address():
         result["message"] = f"Error occurred: {e}"
     return result
 
-def check_service(service, command):
+def check_process(process, command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout
 
-def host_services():
-    service_checks = {
+def process_checks():
+    process_checks = {
         "qbittorrent": "ps -ef | grep -E '([q]bittorrent)'",
         "minidlna": "ps -ef | grep -E '([m]inidlna)'",
         "vi": "ps -ef |grep pts.*[v]i$",
@@ -48,7 +48,8 @@ def host_services():
         "Dropbox": "ps -ef | grep [d]ropbox",
         "KeepassXC": "ps -ef | grep -i '[b]in/keepassxc'",
         "Apache Nifi": "ps -ef | grep -i '[o]pt/nifi'",
-        "Open WebUI": "curl localhost:3000 --silent |grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'"
+        "Open WebUI": "curl localhost:3000 --silent |grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'",
+        "Galaxy S20": "mount| grep -i '/mnt/GalaxyS20'"
     }
 
     output_messages = []
@@ -62,26 +63,26 @@ def host_services():
     # Host Information
     output_messages.append(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
 
-    for service, command in service_checks.items():
-        output = check_service(service, command)
+    for process, command in process_checks.items():
+        output = check_process(process, command)
 
         if output:
-            if service == "Data Backup":
+            if process == "Data Backup":
                 backup_date_str = output.strip().split(' ')[1]  # Extract the date part
                 backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
                 if datetime.now() - backup_date > timedelta(days=7):
                     output_messages.append(f"[❌] Backup Status: Last modified date {backup_date_str} is older than 7 days")
                 else:
                     output_messages.append(f"[✅] Backup Status: Last modified date {backup_date_str} is within 7 days")
-            elif service == "Expressvpn":
+            elif process == "Expressvpn":
                 if re.search("Connected", output.strip()):
                     output_messages.append(f"[✅] ExpressVPN Status: {output.strip()}")
                 else:
                     output_messages.append(f"[❌] ExpressVPN Status: {output.strip()}")
             else:
-                output_messages.append(f"[✅] {service} is running")
+                output_messages.append(f"[✅] {process} is running")
         else:
-            output_messages.append(f"[❌] {service} is not running")
+            output_messages.append(f"[❌] {process} is not running")
 
     # Print all output messages
     final_output = "\n".join(output_messages)
@@ -89,4 +90,4 @@ def host_services():
     print("\n")
 
 # Call the function to execute
-host_services()
+process_checks()
