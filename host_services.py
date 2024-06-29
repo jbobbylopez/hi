@@ -38,8 +38,9 @@ def check_process(process, command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout
 
-def process_checks():
-    process_checks = {
+
+def get_process_checks():
+    checks = {
         "qbittorrent": "ps -ef | grep -E '([q]bittorrent)'",
         "minidlna": "ps -ef | grep -E '([m]inidlna)'",
         "vi": "ps -ef |grep pts.*[v]i$",
@@ -51,6 +52,10 @@ def process_checks():
         "Open WebUI": "curl localhost:3000 --silent |grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'",
         "Galaxy S20": "mount| grep -i '/mnt/GalaxyS20'"
     }
+    return checks
+
+def check_engine():
+    checks = get_process_checks()
 
     output_messages = []
 
@@ -63,7 +68,7 @@ def process_checks():
     # Host Information
     output_messages.append(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
 
-    for process, command in process_checks.items():
+    for process, command in checks.items():
         output = check_process(process, command)
 
         if output:
@@ -90,4 +95,4 @@ def process_checks():
     print("\n")
 
 # Call the function to execute
-process_checks()
+check_engine()
