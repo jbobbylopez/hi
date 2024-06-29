@@ -4,6 +4,7 @@ import subprocess
 import socket
 import re
 from datetime import datetime, timedelta
+import yaml
 
 def get_ip_address():
     result = {
@@ -40,29 +41,19 @@ def check_process(process, command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout
 
-
-def get_process_checks():
-    checks = {
-        "qbittorrent": "ps -ef | grep -E '([q]bittorrent)'",
-        "minidlna": "ps -ef | grep -E '([m]inidlna)'",
-        "vi": "ps -ef |grep pts.*[v]i$",
-        "Data Backup": "stat ~/.jbl-backup.log | grep ^Modify",
-        "Expressvpn": "expressvpn status | grep -i connected | sed \"s/\\x1b\[[0-9;]*[mGK]//g\"",
-        "Dropbox": "ps -ef | grep [d]ropbox",
-        "KeepassXC": "ps -ef | grep -i '[b]in/keepassxc'",
-        "Apache Nifi": "ps -ef | grep -i '[o]pt/nifi'",
-        "Open WebUI": "curl localhost:3000 --silent |grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'",
-        "Galaxy S20": "mount| grep -i '/mnt/GalaxyS20'"
-    }
+def get_checks_yaml(checks_yaml):
+    with open(checks_yaml, 'r') as file:
+        checks = yaml.safe_load(file)
     return checks
 
-def check_engine():
-    checks = get_process_checks()
+def check_engine_yaml():
+    checks = get_checks_yaml("/home/jbl/scripts/jbl-host-information/checks.yml")
+    checks = checks['checks']
 
     output_messages = []
 
-    for process, command in checks.items():
-        output = check_process(process, command)
+    for process, attribs in checks.items():
+        output = check_process(process, attribs['command'])
 
         if output:
             if process == "Data Backup":
@@ -88,7 +79,8 @@ def check_engine():
 
 def display_checks():
     console = Console()
-    process_checks = check_engine()
+    #process_checks = check_engine()
+    process_checks = check_engine_yaml()
     checks = process_checks.split('\n')
 
     # Get and print the local IP address
