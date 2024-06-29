@@ -104,8 +104,8 @@ def display_checks():
     table = Table(show_header=True, header_style="bold magenta", expand=True)
 
     # Define columns
-    table.add_column("Column 1", style="green3", justify="left", no_wrap=True, width=40)
-    table.add_column("Column 2", style="green3", justify="center", no_wrap=True, width=40)
+    table.add_column("Process Checks", style="green3", justify="left", no_wrap=True, width=40)
+    table.add_column("Mount Checks", style="green3", justify="center", no_wrap=True, width=40)
 
     # Example data
     col1_data = checks
