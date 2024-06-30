@@ -1,5 +1,6 @@
 from rich.console import Console
 from rich.table import Table
+from rich.box import SIMPLE, MINIMAL
 import subprocess
 import socket
 import re
@@ -110,17 +111,17 @@ def display_checks():
     print(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
 
     # Create a new table
-    table1 = Table(show_header=True, header_style="bold magenta", expand=True)
-    table2 = Table(show_header=True, header_style="bold magenta", expand=True)
-    table3 = Table(show_header=True, header_style="bold magenta", expand=True)
+    table1 = Table(show_header=True, header_style="bold magenta", expand=True, box=MINIMAL)
+    table2 = Table(show_header=True, header_style="bold magenta", expand=True, box=MINIMAL)
+    table3 = Table(show_header=True, header_style="bold magenta", expand=True, box=MINIMAL)
 
     # Define columns
-    table1.add_column("Security Checks", style="green3", justify="left", no_wrap=True, width=40)
-    table1.add_column("Mount Checks", style="green3", justify="left", no_wrap=True, width=40)
-    table2.add_column("Data Checks", style="green3", justify="left", no_wrap=True, width=40)
-    table2.add_column("Media Checks", style="green3", justify="left", no_wrap=True, width=40)
-    table3.add_column("Backup Checks", style="green3", justify="left", no_wrap=True, width=40)
-    table3.add_column("Tools Checks", style="green3", justify="left", no_wrap=True, width=40)
+    table1.add_column("Security", style="green3", justify="left", no_wrap=True, width=40)
+    table1.add_column("Mount", style="green3", justify="left", no_wrap=True, width=40)
+    table2.add_column("Data", style="green3", justify="left", no_wrap=True, width=40)
+    table2.add_column("Media", style="green3", justify="left", no_wrap=True, width=40)
+    table3.add_column("Backup", style="green3", justify="left", no_wrap=True, width=40)
+    table3.add_column("Tools", style="green3", justify="left", no_wrap=True, width=40)
 
     # Add rows to the table with cell borders
     for sec_check, mount_check, in zip(security_checks, mount_checks):
