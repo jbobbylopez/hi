@@ -10,7 +10,7 @@ checks:
   vi:
     group: Tools
     command: |
-      ps -ef | grep pts.*[v]i$
+      ps -ef | grep -E "pts.* [v]i($| .*)" 
   Data Backup:
     group: Backup
     command: |
