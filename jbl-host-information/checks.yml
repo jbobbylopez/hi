@@ -7,6 +7,10 @@ checks:
     group: Media
     command: |
       ps -ef | grep -E '([m]inidlna)'
+  Steam:
+    group: Media
+    command: |
+      ps -ef | grep -E '([s]team.sh)'
   vi:
     group: Tools
     command: |
@@ -15,7 +19,7 @@ checks:
     group: Backup
     command: |
       stat ~/.jbl-backup.log | grep ^Modify
-  Expressvpn:
+  ExpressVPN:
     group: Security
     command: |
       expressvpn status | grep -i connected | sed "s/\\x1b\\[[0-9;]*[mGK]//g"
@@ -39,4 +43,8 @@ checks:
     group: Mount
     command: |
       mount | grep -i '/mnt/GalaxyS20'
+  sshd:
+    group: Security
+    command: |
+      ps -ef | grep -E '([s]shd)'
 
