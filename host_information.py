@@ -47,7 +47,7 @@ def get_checks_yaml(checks_yaml):
         checks = yaml.safe_load(file)
     return checks
 
-def compile_output_messages(process, output):
+def compile_output_messages(process, output, group):
     output_messages = []
 
     if output:
@@ -63,10 +63,15 @@ def compile_output_messages(process, output):
                 output_messages.append(f"[✅] ExpressVPN Status: {output.strip()}")
             else:
                 output_messages.append(f"[❌] ExpressVPN Status: {output.strip()}")
+        elif group == "Mount":
+            output_messages.append(f"[✅] {process} is mounted")
         else:
             output_messages.append(f"[✅] {process} is running")
     else:
-        output_messages.append(f"[❌] {process} is not running")
+        if group == "Mount":
+            output_messages.append(f"[❌] {process} is not mounted")
+        else:
+            output_messages.append(f"[❌] {process} is not running")
 
     # Print all output messages
     final_output = "\n".join(output_messages)
@@ -87,7 +92,7 @@ def check_engine_yaml(check_type):
     for process, attribs in checks.items():
         if attribs['group'] == check_type:
             output = check_process(process, attribs['command'])
-            group_output.append(compile_output_messages(process, output))
+            group_output.append(compile_output_messages(process, output, check_type))
 
     final_output = group_output
     return final_output
@@ -139,7 +144,7 @@ def display_checks():
 
     # Define columns
     table1.add_column("Security", style="green3", justify="left", no_wrap=True, width=40)
-    table1.add_column("Mount", style="green3", justify="left", no_wrap=True, width=40)
+    table1.add_column("Volumes / File Services", style="green3", justify="left", no_wrap=True, width=40)
     table2.add_column("Data", style="green3", justify="left", no_wrap=True, width=40)
     table2.add_column("Media", style="green3", justify="left", no_wrap=True, width=40)
     table3.add_column("Backup", style="green3", justify="left", no_wrap=True, width=40)
