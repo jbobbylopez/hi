@@ -39,7 +39,7 @@ checks:
     group: Data  # Updated to Data group
     command: |
       curl localhost:3000 --silent | grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'
-  Galaxy S20:
+  Galaxy S20 (sshfs):
     group: Mount
     command: |
       mount | grep -i '/mnt/GalaxyS20'
