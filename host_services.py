@@ -46,42 +46,59 @@ def get_checks_yaml(checks_yaml):
         checks = yaml.safe_load(file)
     return checks
 
-def check_engine_yaml():
-    checks = get_checks_yaml("/home/jbl/scripts/jbl-host-information/checks.yml")
-    checks = checks['checks']
-
+def compile_output_messages(process, output):
     output_messages = []
 
-    for process, attribs in checks.items():
-        output = check_process(process, attribs['command'])
-
-        if output:
-            if process == "Data Backup":
-                backup_date_str = output.strip().split(' ')[1]  # Extract the date part
-                backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
-                if datetime.now() - backup_date > timedelta(days=7):
-                    output_messages.append(f"[❌] Backup Status: Last modified date {backup_date_str} is older than 7 days")
-                else:
-                    output_messages.append(f"[✅] Backup Status: Last modified date {backup_date_str} is within 7 days")
-            elif process == "Expressvpn":
-                if re.search("Connected", output.strip()):
-                    output_messages.append(f"[✅] ExpressVPN Status: {output.strip()}")
-                else:
-                    output_messages.append(f"[❌] ExpressVPN Status: {output.strip()}")
+    if output:
+        if process == "Data Backup":
+            backup_date_str = output.strip().split(' ')[1]  # Extract the date part
+            backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
+            if datetime.now() - backup_date > timedelta(days=7):
+                output_messages.append(f"[❌] Backup Status: Last modified date {backup_date_str} is older than 7 days")
             else:
-                output_messages.append(f"[✅] {process} is running")
+                output_messages.append(f"[✅] Backup Status: Last modified date {backup_date_str} is within 7 days")
+        elif process == "Expressvpn":
+            if re.search("Connected", output.strip()):
+                output_messages.append(f"[✅] ExpressVPN Status: {output.strip()}")
+            else:
+                output_messages.append(f"[❌] ExpressVPN Status: {output.strip()}")
         else:
-            output_messages.append(f"[❌] {process} is not running")
+            output_messages.append(f"[✅] {process} is running")
+    else:
+        output_messages.append(f"[❌] {process} is not running")
 
     # Print all output messages
     final_output = "\n".join(output_messages)
     return final_output
 
+def check_engine_yaml(check_type):
+    checks = get_checks_yaml("/home/jbl/scripts/jbl-host-information/checks.yml")
+    checks = checks['checks']
+
+    security_output = []
+    data_output = []
+    mount_output = []
+    backup_output = []
+    media_output = []
+    tools_output = []
+    group_output = []
+
+    for process, attribs in checks.items():
+        if attribs['group'] == check_type:
+            output = check_process(process, attribs['command'])
+            group_output.append(compile_output_messages(process, output))
+
+    final_output = group_output
+    return final_output
+
 def display_checks():
     console = Console()
-    #process_checks = check_engine()
-    process_checks = check_engine_yaml()
-    checks = process_checks.split('\n')
+    security_checks = check_engine_yaml("Security")
+    data_checks = check_engine_yaml("Data")
+    mount_checks = check_engine_yaml("Mount")
+    backup_checks = check_engine_yaml("Backup")
+    media_checks = check_engine_yaml("Media")
+    tools_checks = check_engine_yaml("Tools")
 
     # Get and print the local IP address
     local_ip_result = get_ip_address()
@@ -93,26 +110,32 @@ def display_checks():
     print(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
 
     # Create a new table
-    table = Table(show_header=True, header_style="bold magenta", expand=True)
+    table1 = Table(show_header=True, header_style="bold magenta", expand=True)
+    table2 = Table(show_header=True, header_style="bold magenta", expand=True)
+    table3 = Table(show_header=True, header_style="bold magenta", expand=True)
 
     # Define columns
-    table.add_column("Process Checks", style="green3", justify="left", no_wrap=True, width=40)
-    table.add_column("Mount Checks", style="green3", justify="center", no_wrap=True, width=40)
-
-    # Example data
-    col1_data = checks
-    #col2_data = ["Data A", "Data B", "Data C", "Data D"]
+    table1.add_column("Security Checks", style="green3", justify="left", no_wrap=True, width=40)
+    table1.add_column("Mount Checks", style="green3", justify="left", no_wrap=True, width=40)
+    table2.add_column("Data Checks", style="green3", justify="left", no_wrap=True, width=40)
+    table2.add_column("Media Checks", style="green3", justify="left", no_wrap=True, width=40)
+    table3.add_column("Backup Checks", style="green3", justify="left", no_wrap=True, width=40)
+    table3.add_column("Tools Checks", style="green3", justify="left", no_wrap=True, width=40)
 
     # Add rows to the table with cell borders
-    for data1 in zip(col1_data):
-        table.add_row(
-            #f"[green3][blue]{data1[0]}[/blue][/green3]",
-            f"{data1[0]}",
-            #f"[blue]▌[/blue] [green3]{data2}[/green3]"
-        )
+    for sec_check, mount_check, in zip(security_checks, mount_checks):
+        table1.add_row(sec_check,mount_check)
+
+    for data_check, media_check in zip(data_checks, media_checks):
+        table2.add_row(data_check,media_check)
+
+    for backup_check, tools_check in zip(backup_checks, tools_checks):
+        table3.add_row(backup_check,tools_check)
 
     # Print the table with solid blue borders and solid green cell borders
-    console.print(table)
+    console.print(table1)
+    console.print(table2)
+    console.print(table3)
 
 # Call the function to execute
 display_checks()
