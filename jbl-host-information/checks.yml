@@ -27,7 +27,7 @@ checks:
     group: Security
     command: |
       ps -ef | grep -i '[b]in/keepassxc'
-  Apache Nifi:
+  Apache NiFi:
     group: Data
     command: |
       ps -ef | grep -i '[o]pt/nifi'
