@@ -51,4 +51,7 @@ checks:
     group: Tools
     command: |
       ps -ef | grep "\ mc$"
-
+  tmux:
+    group: Tools
+    command: |
+      ps -ef | grep "\ tmux$"
