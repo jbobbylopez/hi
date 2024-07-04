@@ -63,15 +63,18 @@ def compile_output_messages(process, output, group):
                 output_messages.append(f"[✅] ExpressVPN Status: {output.strip()}")
             else:
                 output_messages.append(f"[❌] ExpressVPN Status: {output.strip()}")
+        elif group == "Tools":
+            output_messages.append(f"[💡] {process} is running")
         elif group == "Mount":
             output_messages.append(f"[✅] {process} is mounted")
         else:
             output_messages.append(f"[✅] {process} is running")
-    else:
-        if group == "Mount":
+    elif group == "Tools":
+            output_messages.append(f"[⏼] {process} is not running")
+    elif group == "Mount":
             output_messages.append(f"[❌] {process} is not mounted")
-        else:
-            output_messages.append(f"[❌] {process} is not running")
+    else:
+        output_messages.append(f"[❌] {process} is not running")
 
     # Print all output messages
     final_output = "\n".join(output_messages)

@@ -47,4 +47,8 @@ checks:
     group: Security
     command: |
       ps -ef | grep -E '([s]shd)'
+  Midnight Commander:
+    group: Tools
+    command: |
+      ps -ef | grep "\ mc$"
 
