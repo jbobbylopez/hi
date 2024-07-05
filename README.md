@@ -1,3 +1,5 @@
+![Screenshot of Hi](assets/hi-example-screenshot.png)
+
 Hi - Host Information
 =====================
 
