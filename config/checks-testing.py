@@ -16,7 +16,7 @@ def check_bash_command_syntax(command):
 
 def main():
     # Load the checks.yml file
-    with open('/home/jbl/scripts/jbl-host-information/checks.yml', 'r') as file:
+    with open('checks.yml', 'r') as file:
         data = yaml.safe_load(file)
     
     # Loop through each command in the file
