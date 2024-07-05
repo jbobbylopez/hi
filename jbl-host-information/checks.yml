@@ -1,0 +1,57 @@
+checks:
+  qbittorrent:
+    group: Media
+    command: |
+      ps -ef | grep -E '([q]bittorrent)'
+  minidlna:
+    group: Media
+    command: |
+      ps -ef | grep -E '([m]inidlna)'
+  Steam:
+    group: Media
+    command: |
+      ps -ef | grep -E '([s]team.sh)'
+  vi:
+    group: Tools
+    command: |
+      ps -ef | grep -E "pts.* [v]i($| .*)" 
+  Data Backup:
+    group: Backup
+    command: |
+      stat ~/.jbl-backup.log | grep ^Modify
+  ExpressVPN:
+    group: Security
+    command: |
+      expressvpn status | grep -i connected | sed "s/\\x1b\\[[0-9;]*[mGK]//g"
+  Dropbox:
+    group: Mount  # Updated to Mount group
+    command: |
+      ps -ef | grep [d]ropbox
+  KeepassXC:
+    group: Security
+    command: |
+      ps -ef | grep -i '[b]in/keepassxc'
+  Apache NiFi:
+    group: Data
+    command: |
+      ps -ef | grep -i '[o]pt/nifi'
+  Open WebUI:
+    group: Data  # Updated to Data group
+    command: |
+      curl localhost:3000 --silent | grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'
+  Galaxy S20 (sshfs):
+    group: Mount
+    command: |
+      mount | grep -i '/mnt/GalaxyS20'
+  sshd:
+    group: Security
+    command: |
+      ps -ef | grep -E '([s]shd)'
+  Midnight Commander:
+    group: Tools
+    command: |
+      ps -ef | grep "\ mc$"
+  tmux:
+    group: Tools
+    command: |
+      ps -ef | grep "\ tmux$"
