@@ -4,8 +4,15 @@ from rich.box import SIMPLE, MINIMAL
 import subprocess
 import socket
 import re
+import os
 from datetime import datetime, timedelta
 import yaml
+
+def get_script_dir():
+    ''' Returns the directory where the script is running from '''
+    script_path = os.path.abspath(__file__)
+    script_dir = os.path.dirname(script_path)
+    return script_dir
 
 def get_ip_address():
     result = {
@@ -81,7 +88,8 @@ def compile_output_messages(process, output, group):
     return final_output
 
 def check_engine_yaml(check_type):
-    checks = get_checks_yaml("/home/jbl/scripts/jbl-host-information/checks.yml")
+    script_dir = get_script_dir()
+    checks = get_checks_yaml(script_dir + "/config/checks.yml")
     checks = checks['checks']
 
     security_output = []
