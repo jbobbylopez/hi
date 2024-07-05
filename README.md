@@ -70,7 +70,6 @@ checks:
     command: |
       ps -ef | grep -E '([q]bittorrent)'
   ...
-}
 ```
 
 ### Usage
