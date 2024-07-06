@@ -81,7 +81,7 @@ checks:
 2.  **(Optional)** Set up a bash function and alias to run the script more easily.
     
 
-#### Setting Up a Bash Function and Alias
+#### Setting Up a Bash Function and Alias for 'hi'
 To easily call the script from the terminal, you can set up a bash function and alias. Add the following function to your ~/.bashrc file:
 ```
 host_information () {
@@ -101,7 +101,7 @@ After adding these lines, save the ~/.bashrc file and apply the changes:
 Now you can run the script using the command:
 `hi`
 
-#### Setting Up a Bash Function and Alias
+#### Setting Up a Continuously Updating Monitor for 'hi'
 To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the follwoing function to your ~/.bashrc file:
 In this case, the watch command would monitor the output of 'hi' every 2 seconds.
 ```
