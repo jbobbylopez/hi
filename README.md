@@ -76,7 +76,7 @@ checks:
 
 ### Usage
 
-1.  python3 hi\_host\_information.py
+1.  python3 host\_information.py
     
 2.  **(Optional)** Set up a bash function and alias to run the script more easily.
     
