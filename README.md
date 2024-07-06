@@ -101,7 +101,29 @@ After adding these lines, save the ~/.bashrc file and apply the changes:
 Now you can run the script using the command:
 `hi`
 
-Output
+#### Setting Up a Bash Function and Alias
+To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the follwoing function to your ~/.bashrc file:
+In this case, the watch command would monitor the output of 'hi' every 2 seconds.
+```
+host_information_watch() {
+    clear
+    watch -c -n 2 "python3 ~/path/to/hi/host_information.py &&\
+        python3 ~/path/to/hi/check_ubuntu_eol.py &&\
+        python3 ~/path/to/hi/df-bargraph.py"
+}
+```
+Again, replace ~/path/to/hi/ with the actual path to where you cloned the repository.
+
+Then, add an alias to call this function:
+`alias hi_watch=host_information_watch`
+
+After adding these lines, save the ~/.bashrc file and apply the changes:
+`source ~/.bashrc`
+
+Now you can run the continuously updating output from 'hi' using the command:
+`hi_watch`
+
+### Example Output ###
 
 Here's an example of how the output will appear:
 ![Screenshot of Hi](assets/hi-example-screenshot.png)
