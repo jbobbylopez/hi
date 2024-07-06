@@ -1,0 +1,35 @@
+A quick note on target changes that I plan to make in this tool.
+This will help me gather my thoughts and prioritize the work.
+
+Target Features:
+- Sub-checks - the ability to check various sub-status using the same check
+  delclaration pattern.
+- Dynamic Groups: Currently the groups are hard-coded (Tools, Data, Mounts,
+  Security, Backup..).  This should be dynamic, and based on a yaml config.
+- Check Description: I want to add a 'description:' field to each check
+  (and sub-check) to provide details on what the check is doing (or why
+  it's important).  These details don't need to be part of the default
+  'hi' tool output, but can be shown as extended information with a flag on
+  the command-line, or in the HTTP server / API output.
+
+Likely Features:
+- Breaking checks.yml out into multiple files. I imagine that if I'm going
+  to implement 'Dynamic Groups', then I might as well group checks in
+  filenames representing those groups. It would also making managing checks
+  and easier task.
+
+
+Other Ideas:
+- HTTP Extended Information: I would provide the ability to configure 'hi'
+  to run a user-space http service that would publish the output in JSON
+  format in a version controlled API. I could also render a full HTML
+  report that looks similar to the terminal output, but also expose the
+  extended information such as the 'description:' fields.
+- Multi-hi - leveraging an exposed API to be able to configure 'hi' to
+  recognise other 'hi' instances, and be able to share information, so that
+  multiple hosts can be reported on from a single terminal.  The 'hi'
+  command-line structure could be crafted to target queries for further
+  information from target remote hosts in a command-line friendly manner
+  (keeping workflow in mind, this shouldn't be cumbersome to use).
+
+
