@@ -104,7 +104,7 @@ Now you can run the script using the command:
 Output
 
 Here's an example of how the output will appear:
-<screenshots>
+![Screenshot of Hi](assets/hi-example-screenshot.png)
 
 ### How It Works ###
 *Configuration Loading:* The script starts by loading the YAML configuration file (config/checks.yml). This file specifies different services and checks categorized into groups such as Media, Tools, Security, Backup, Data, and Mount.
