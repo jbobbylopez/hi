@@ -77,7 +77,7 @@ def compile_output_messages(process, output, group):
         else:
             output_messages.append(f"[✅] {process} is running")
     elif group == "Tools":
-            output_messages.append(f"[⏼] {process} is not running")
+            output_messages.append(f"[⚫] {process} is not running")
     elif group == "Mount":
             output_messages.append(f"[❌] {process} is not mounted")
     else:

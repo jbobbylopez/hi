@@ -55,3 +55,11 @@ checks:
     group: Tools
     command: |
       ps -ef | grep "\ tmux$"
+  dockerd:
+    group: Security
+    command: |
+      ps -ef | grep -E "[/]usr/bin/dockerd"
+  signal-desktop:
+    group: Security
+    command: |
+      ps -ef | grep -E "[/]opt/Signal/signal-desktop"
