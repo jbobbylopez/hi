@@ -60,33 +60,76 @@ def get_groups_yaml(groups_yaml):
     return groups
 
 def compile_output_messages(process, output, group):
+    """
+    Generates status messages for given processes based on their output and group configuration.
+
+    Uses predefined configurations to determine the success or failure of processes and constructs
+    corresponding messages. Handles various process types such as date checks and status checks,
+    and ensures fallback to default group messages when specific configurations are missing.
+    
+    Parameters:
+        process (str): The name of the process to check.
+        output (str): The output result from the process command.
+        group (str): The group to which the process belongs.
+
+    Returns:
+        str: A compiled status message for the process.
+    """
     output_messages = []
+    config = {
+        "Data Backup": {
+            "type": "date_check",
+            "date_format": "%Y-%m-%d",
+            "threshold_days": 7,
+            "success_message": "[✅] Backup Status: Last modified date {date_str} is within {threshold_days} days",
+            "failure_message": "[❌] Backup Status: Last modified date {date_str} is older than {threshold_days} days"
+        },
+        "ExpressVPN": {
+            "type": "status_check",
+            "success_pattern": "Connected",
+            "success_message": "[✅] ExpressVPN Status: {output}",
+            "failure_message": "[❌] ExpressVPN Status: {output}"
+        },
+        "group_messages": {
+            "Tools": {
+                "running_message": "[💡] {process} is running",
+                "not_running_message": "[⚫] {process} is not running"
+            },
+            "Mount": {
+                "mounted_message": "[✅] {process} is mounted",
+                "not_mounted_message": "[❌] {process} is not mounted"
+            },
+            "default": {
+                "running_message": "[✅] {process} is running",
+                "not_running_message": "[❌] {process} is not running"
+            }
+        }
+    }
 
     if output:
-        if process == "Data Backup":
-            backup_date_str = output.strip().split(' ')[1]  # Extract the date part
-            backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
-            if datetime.now() - backup_date > timedelta(days=7):
-                output_messages.append(f"[❌] Backup Status: Last modified date {backup_date_str} is older than 7 days")
+        process_config = config.get(process, {})
+        process_type = process_config.get("type")
+
+        if process_type == "date_check":
+            backup_date_str = output.strip().split(' ')[1]
+            backup_date = datetime.strptime(backup_date_str, process_config["date_format"])
+            threshold_days = process_config["threshold_days"]
+            if datetime.now() - backup_date > timedelta(days=threshold_days):
+                output_messages.append(process_config["failure_message"].format(date_str=backup_date_str, threshold_days=threshold_days))
             else:
-                output_messages.append(f"[✅] Backup Status: Last modified date {backup_date_str} is within 7 days")
-        elif process == "ExpressVPN":
-            if re.search("Connected", output.strip()):
-                output_messages.append(f"[✅] ExpressVPN Status: {output.strip()}")
+                output_messages.append(process_config["success_message"].format(date_str=backup_date_str, threshold_days=threshold_days))
+        elif process_type == "status_check":
+            success_pattern = process_config["success_pattern"]
+            if re.search(success_pattern, output.strip()):
+                output_messages.append(process_config["success_message"].format(output=output.strip()))
             else:
-                output_messages.append(f"[❌] ExpressVPN Status: {output.strip()}")
-        elif group == "Tools":
-            output_messages.append(f"[💡] {process} is running")
-        elif group == "Mount":
-            output_messages.append(f"[✅] {process} is mounted")
+                output_messages.append(process_config["failure_message"].format(output=output.strip()))
         else:
-            output_messages.append(f"[✅] {process} is running")
-    elif group == "Tools":
-        output_messages.append(f"[⚫] {process} is not running")
-    elif group == "Mount":
-        output_messages.append(f"[❌] {process} is not mounted")
+            group_messages = config["group_messages"].get(group, config["group_messages"]["default"])
+            output_messages.append(group_messages.get("running_message", "[✅] {process} is running").format(process=process))
     else:
-        output_messages.append(f"[❌] {process} is not running")
+        group_messages = config["group_messages"].get(group, config["group_messages"]["default"])
+        output_messages.append(group_messages.get("not_running_message", "[❌] {process} is not running").format(process=process))
 
     final_output = "\n".join(output_messages)
     return final_output
