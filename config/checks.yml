@@ -72,3 +72,8 @@ checks:
     group: Communications
     command: |
       ps -ef | grep -E "[t]hunderbird"
+  CUPS:
+    info: CUPS print service
+    group: Media
+    command: |
+      ps -ef | grep -E "[c]ups"
