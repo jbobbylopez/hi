@@ -5,7 +5,7 @@ import json
 import os
 import time
 
-CACHE_FILE = 'ubuntu_eol_cache.json'
+CACHE_FILE = '/tmp/ubuntu_eol_cache.json'
 CACHE_DURATION = 7 * 24 * 60 * 60  # One week in seconds
 
 def get_ubuntu_version():
@@ -66,7 +66,7 @@ def main():
 
         if eol_date:
             years, months, weeks, days = calculate_time_until_eol(eol_date)
-            print(f"OS EOL: {os_name} {version} - {eol_date} ({years} years, {months} months, {weeks} weeks, and {days} days from now).")
+            print(f"Operating System: {os_name} {version} | End of Life: {eol_date} ({years} years, {months} months, {weeks} weeks, and {days} days remaining)")
         else:
             print(f"End of Life date not found for {os_name} version {version}.")
     except requests.exceptions.RequestException as e:
