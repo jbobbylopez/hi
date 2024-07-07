@@ -123,10 +123,7 @@ def display_checks():
     console = Console()
     script_dir = get_script_dir()
     groups = get_groups_yaml(os.path.join(script_dir, "config/groups.yml"))['groups']
-
-    print("arguments = " + str(sys.argv))
     verbose = '-verbose' in sys.argv
-    print("verbose = " + str(verbose))
 
     # Get and print the local IP address
     local_ip_result = get_ip_address()
