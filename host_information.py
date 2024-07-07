@@ -1,3 +1,4 @@
+import sys
 from rich.console import Console
 from rich.table import Table
 from rich.box import MINIMAL
@@ -7,6 +8,8 @@ import re
 import os
 from datetime import datetime, timedelta
 import yaml
+import check_ubuntu_eol
+import df_bargraph
 
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
@@ -59,82 +62,46 @@ def get_groups_yaml(groups_yaml):
         groups = yaml.safe_load(file)
     return groups
 
-def compile_output_messages(process, output, group):
-    """
-    Generates status messages for given processes based on their output and group configuration.
-
-    Uses predefined configurations to determine the success or failure of processes and constructs
-    corresponding messages. Handles various process types such as date checks and status checks,
-    and ensures fallback to default group messages when specific configurations are missing.
-    
-    Parameters:
-        process (str): The name of the process to check.
-        output (str): The output result from the process command.
-        group (str): The group to which the process belongs.
-
-    Returns:
-        str: A compiled status message for the process.
-    """
+def compile_output_messages(process, output, group, info=None):
     output_messages = []
-    config = {
-        "Data Backup": {
-            "type": "date_check",
-            "date_format": "%Y-%m-%d",
-            "threshold_days": 7,
-            "success_message": "[✅] Backup Status: Last modified date {date_str} is within {threshold_days} days",
-            "failure_message": "[❌] Backup Status: Last modified date {date_str} is older than {threshold_days} days"
-        },
-        "ExpressVPN": {
-            "type": "status_check",
-            "success_pattern": "Connected",
-            "success_message": "[✅] ExpressVPN Status: {output}",
-            "failure_message": "[❌] ExpressVPN Status: {output}"
-        },
-        "group_messages": {
-            "Tools": {
-                "running_message": "[💡] {process} is running",
-                "not_running_message": "[⚫] {process} is not running"
-            },
-            "Mount": {
-                "mounted_message": "[✅] {process} is mounted",
-                "not_mounted_message": "[❌] {process} is not mounted"
-            },
-            "default": {
-                "running_message": "[✅] {process} is running",
-                "not_running_message": "[❌] {process} is not running"
-            }
-        }
-    }
 
     if output:
-        process_config = config.get(process, {})
-        process_type = process_config.get("type")
-
-        if process_type == "date_check":
+        if 'date_check' in process.lower():
             backup_date_str = output.strip().split(' ')[1]
-            backup_date = datetime.strptime(backup_date_str, process_config["date_format"])
-            threshold_days = process_config["threshold_days"]
+            backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
+            threshold_days = 7  # Assuming 7 days threshold for date_check processes
             if datetime.now() - backup_date > timedelta(days=threshold_days):
-                output_messages.append(process_config["failure_message"].format(date_str=backup_date_str, threshold_days=threshold_days))
+                output_messages.append(f"[❌] {process}: Last modified date {backup_date_str} is older than {threshold_days} days")
             else:
-                output_messages.append(process_config["success_message"].format(date_str=backup_date_str, threshold_days=threshold_days))
-        elif process_type == "status_check":
-            success_pattern = process_config["success_pattern"]
-            if re.search(success_pattern, output.strip()):
-                output_messages.append(process_config["success_message"].format(output=output.strip()))
+                output_messages.append(f"[✅] {process}: Last modified date {backup_date_str} is within {threshold_days} days")
+        elif 'expressvpn' in process.lower():
+            if re.search("Connected", output.strip()):
+                output_messages.append(f"[✅] {process} Status: {output.strip()}")
             else:
-                output_messages.append(process_config["failure_message"].format(output=output.strip()))
+                output_messages.append(f"[❌] {process} Status: {output.strip()}")
         else:
-            group_messages = config["group_messages"].get(group, config["group_messages"]["default"])
-            output_messages.append(group_messages.get("running_message", "[✅] {process} is running").format(process=process))
+            if group == "Tools":
+                output_messages.append(f"[💡] {process} is running")
+            elif group == "Mount":
+                output_messages.append(f"[✅] {process} is mounted")
+            else:
+                output_messages.append(f"[✅] {process} is running")
     else:
-        group_messages = config["group_messages"].get(group, config["group_messages"]["default"])
-        output_messages.append(group_messages.get("not_running_message", "[❌] {process} is not running").format(process=process))
+        if group == "Tools":
+            output_messages.append(f"[⚫] {process} is not running")
+        elif group == "Mount":
+            output_messages.append(f"[❌] {process} is not mounted")
+        else:
+            output_messages.append(f"[❌] {process} is not running")
+
+    # Add info message if present
+    if info:
+        output_messages.append(f"  [🔹] {info}")
 
     final_output = "\n".join(output_messages)
     return final_output
 
-def check_engine_yaml(check_type):
+def check_engine_yaml(check_type, verbose=False):
     script_dir = get_script_dir()
     checks = get_checks_yaml(os.path.join(script_dir, "config/checks.yml"))
     checks = checks['checks']
@@ -144,7 +111,8 @@ def check_engine_yaml(check_type):
     for process, attribs in checks.items():
         if attribs['group'] == check_type:
             output = check_process(process, attribs['command'])
-            group_output.append(compile_output_messages(process, output, check_type))
+            info = attribs.get('info') if verbose else None
+            group_output.append(compile_output_messages(process, output, check_type, info))
 
     return group_output
 
@@ -156,6 +124,10 @@ def display_checks():
     script_dir = get_script_dir()
     groups = get_groups_yaml(os.path.join(script_dir, "config/groups.yml"))['groups']
 
+    print("arguments = " + str(sys.argv))
+    verbose = '-verbose' in sys.argv
+    print("verbose = " + str(verbose))
+
     # Get and print the local IP address
     local_ip_result = get_ip_address()
 
@@ -164,14 +136,14 @@ def display_checks():
 
     console.print(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
 
-    group_statuses = {group: check_engine_yaml(group) for group in groups}
+    group_statuses = {group: check_engine_yaml(group, verbose) for group in groups}
 
     # Loop over every two groups and create tables
     for i in range(0, len(groups), 2):
         table = Table(show_header=True, header_style="bold magenta", expand=True, box=MINIMAL)
         group1 = groups[i]
         table.add_column(group1, style="green3", justify="left", no_wrap=True, width=40)
-        group2 = groups[i+1] if i + 1 < len(groups) else None
+        group2 = groups[i + 1] if i + 1 < len(groups) else None
         if group2:
             table.add_column(group2, style="green3", justify="left", no_wrap=True, width=40)
 
@@ -186,3 +158,5 @@ def display_checks():
 
 # Call the function to execute
 display_checks()
+check_ubuntu_eol.main()
+df_bargraph.display_bar_graph()

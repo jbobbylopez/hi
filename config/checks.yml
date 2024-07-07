@@ -1,13 +1,16 @@
 checks:
   qbittorrent:
+    info: qbittorrent client for free to use, public domain films from the national film registry.
     group: Media
     command: |
       ps -ef | grep -E '([q]bittorrent)'
   minidlna:
+    info: media player for public domain films
     group: Media
     command: |
       ps -ef | grep -E '([m]inidlna)'
   Steam:
+    info: Steam Games Desktop Client
     group: Media
     command: |
       ps -ef | grep -E '([s]team.sh)'
