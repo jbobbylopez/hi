@@ -5,7 +5,7 @@ checks:
     command: |
       ps -ef | grep -E '([q]bittorrent)'
   minidlna:
-    info: media player for public domain films
+    info: UPnP server for public domain films and videos
     group: Media
     command: |
       ps -ef | grep -E '([m]inidlna)'
@@ -23,6 +23,7 @@ checks:
     command: |
       stat ~/.jbl-backup.log | grep ^Modify
   ExpressVPN:
+    info: For general privacy and security.
     group: Security
     command: |
       expressvpn status | grep -i connected | sed "s/\\x1b\\[[0-9;]*[mGK]//g"
@@ -30,6 +31,7 @@ checks:
     group: Mount  # Updated to Mount group
     command: |
       ps -ef | grep [d]ropbox
+    info: Monitoring that dropbox process is running
   KeepassXC:
     group: Security
     command: |
