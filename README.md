@@ -68,6 +68,7 @@ Example configuration reference:
 ```
 checks:
   qbittorrent:
+    info: My bittorrent client
     group: Media
     command: |
       ps -ef | grep -E '([q]bittorrent)'
@@ -81,19 +82,8 @@ checks:
 2.  **(Optional)** Set up a bash function and alias to run the script more easily.
     
 
-#### Setting Up a Bash Function and Alias for 'hi'
-To easily call the script from the terminal, you can set up a bash function and alias. Add the following function to your ~/.bashrc file:
-```
-host_information () {
-    python3 ~/path/to/hi/host_information.py
-    python3 ~/path/to/hi/check_ubuntu_eol.py
-    python3 ~/path/to/hi/df-bargraph.py
-}
-```
-Replace ~/path/to/hi/ with the actual path to where you cloned the repository.
-
-Then, add an alias to call this function:
-`alias hi=host_information`
+Add an alias to your ~/.bashrc to call this script:
+`alias hi="/path/to/hi/host_information.py $@"`
 
 After adding these lines, save the ~/.bashrc file and apply the changes:
 `source ~/.bashrc`
@@ -101,15 +91,17 @@ After adding these lines, save the ~/.bashrc file and apply the changes:
 Now you can run the script using the command:
 `hi`
 
+#### Options and Arguments
+Arguments:
+-verbose - show check description from the 'info:' field in the checks.yml file.
+
 #### Setting Up a Continuously Updating Monitor for 'hi'
 To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the follwoing function to your ~/.bashrc file:
 In this case, the watch command would monitor the output of 'hi' every 2 seconds.
 ```
 host_information_watch() {
     clear
-    watch -c -n 2 "python3 ~/path/to/hi/host_information.py &&\
-        python3 ~/path/to/hi/check_ubuntu_eol.py &&\
-        python3 ~/path/to/hi/df-bargraph.py"
+    watch -c -n 2 "python3 ~/path/to/hi/host_information.py"
 }
 ```
 Again, replace ~/path/to/hi/ with the actual path to where you cloned the repository.
