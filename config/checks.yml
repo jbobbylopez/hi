@@ -61,10 +61,14 @@ checks:
     command: |
       ps -ef | grep "\ tmux$"
   dockerd:
-    group: Security
+    group: Virtualization
     command: |
       ps -ef | grep -E "[/]usr/bin/dockerd"
   signal-desktop:
     group: Security
     command: |
       ps -ef | grep -E "[/]opt/Signal/signal-desktop"
+  Thunderbird:
+    group: Communications
+    command: |
+      ps -ef | grep -E "[t]hunderbird"

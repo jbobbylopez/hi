@@ -2,6 +2,8 @@ groups:
   - Security
   - Mount
   - Data
+  - Communications
   - Media
   - Backup
+  - Virtualization
   - Tools
