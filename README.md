@@ -75,6 +75,10 @@ checks:
   ...
 ```
 
+Also be sure to read the article [Say "hi" to your Linux Host
+Information](https://dev.to/jbobbylopez/saying-hi-to-your-linux-host-information-4fh6)
+to learn about about how to instrument more complex system checks.
+
 ### Usage
 
 1.  python3 host\_information.py
