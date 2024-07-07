@@ -8,7 +8,7 @@ Target Features:
 
 - Sub-checks - the ability to check various sub-status using the same check delclaration pattern.
 
-- Dynamic Groups: Currently the groups are hard-coded (Tools, Data, Mounts, Security, Backup..).
+- [✅] Dynamic Groups: Currently the groups are hard-coded (Tools, Data, Mounts, Security, Backup..).
 This should be dynamic, and based on a yaml config.
 
 - Check Description: I want to add a 'description:' field to each check (and sub-check)
