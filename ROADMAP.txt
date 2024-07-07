@@ -22,7 +22,7 @@ Likely Features:
 
 - Breaking checks.yml out into multiple files. I imagine that if I'm going to implement
 'Dynamic Groups', then I might as well group the checks with filenames representing those groups. 
-It would also making managing checks an easier task.
+It would also make managing checks an easier task.
 
 
 
