@@ -176,16 +176,18 @@ Inspiration for this tool has come from various sources, including btop, glances
 Want to talk about this tool? Feel free to reach me via github or linkedin.
 
 ### Note ###
+
 This tool has so far only been tested with the following system specifications:
+
 ------------------- 
-OS: Kubuntu 22.04.4 LTS x86_64 
-Kernel: 5.15.0-112-generic 
-Shell: bash 5.1.16 
-Python: 3.10.12.
-DE: Plasma 5.25.5 
-WM: KWin 
-Theme: Breeze Light [Plasma], Breeze [GTK3] 
-Icons: [Plasma], candy-icons [GTK2/3]
+- OS: Kubuntu 22.04.4 LTS x86_64 
+- Kernel: 5.15.0-112-generic 
+- Shell: bash 5.1.16 
+- Python: 3.10.12.
+- DE: Plasma 5.25.5 
+- WM: KWin 
+- Theme: Breeze Light [Plasma], Breeze [GTK3] 
+- Icons: [Plasma], candy-icons [GTK2/3]
 
 It is possible that your OS + Python version combination, or some aspect of
 your OS or distro configuration may result in errors being thrown by this tool if
