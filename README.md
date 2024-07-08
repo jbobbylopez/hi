@@ -3,6 +3,10 @@
 hi - Host Information
 =====================
 
+**PLEASE NOTE: This tool is still in early development.  Things will change
+quickly, and there will likely be bugs along the way.  Follow the project
+to stay updated on new features and fixes.**
+
 "hi" is a command-line tool designed to monitor and display the status of various services running on a host. The services and their respective checks are customizable via a YAML configuration file, allowing for flexibility to suit different monitoring needs. This tool leverages the Rich library to provide visually pleasing output that includes UTF8 status icons, so it should be run in a terminal that supports the UTF8 character-set.
 
 Features
