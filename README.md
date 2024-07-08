@@ -208,6 +208,9 @@ After adding these lines, save the ~/.bashrc file and apply the changes:
 Now you can run the continuously updating output from 'hi' using the command:
 `hi_watch`
 
+#### Note: There is a note to make this 'watch' functionality native to
+this tool.  See ROADMAP.txt for details.
+
 ### Contributing ###
 1. Fork the repository.
 2. Create your feature branch (git checkout -b feature/awesome-feature).
