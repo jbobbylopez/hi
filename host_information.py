@@ -64,9 +64,10 @@ def get_groups_yaml(groups_yaml):
 
 def compile_output_messages(process, output, group, info=None):
     output_messages = []
+    print("process.lower: " + process.lower())
 
     if output:
-        if 'date_check' in process.lower():
+        if 'data backup' in process.lower():
             backup_date_str = output.strip().split(' ')[1]
             backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
             threshold_days = 7  # Assuming 7 days threshold for date_check processes
