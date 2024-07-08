@@ -50,19 +50,22 @@ Ensure that your terminal supports the UTF8 character set for proper display of 
 You can install the dependencies via pip:
 `   pip install pyyaml rich   `
 
+2.  `python3 --version`
+
 ### Installation
 
-1.  git clone https://github.com/jbobbylopez/hi.git
-cd hi
+1.  `git clone https://github.com/jbobbylopez/hi.git`
+
+`cd hi`
     
-2.  python3 --version
-    
-3.  pip install -r requirements.txt
+2.  `pip install -r requirements.txt`
+
+3.  `python3 host_information.py`
     
 
 ### Configuration
 
-Customize the services and checks in the config/checks.yml file located in the repository. This configuration file allows you to define any number of checks to monitor services or functionalities available via the command line.
+Customize the services and checks in the `config/checks.yml` file located in the repository. This configuration file allows you to define any number of checks to monitor services or functionalities available via the command line.
 
 Example configuration reference:
 ```
@@ -81,7 +84,7 @@ to learn about how to instrument more complex system checks.
 
 ### Usage
 
-1.  python3 host\_information.py
+1.  `python3 host_information.py`
     
 2.  **(Optional)** Set up a bash function and alias to run the script more easily.
     
