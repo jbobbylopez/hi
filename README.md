@@ -176,4 +176,27 @@ Inspiration for this tool has come from various sources, including btop, glances
 Want to talk about this tool? Feel free to reach me via github or linkedin.
 
 ### Note ###
-This tool has so far only been tested on Ubuntu 22.04 LTS.
+This tool has so far only been tested with the following system specifications:
+------------------- 
+OS: Kubuntu 22.04.4 LTS x86_64 
+Kernel: 5.15.0-112-generic 
+Shell: bash 5.1.16 
+Python: 3.10.12.
+DE: Plasma 5.25.5 
+WM: KWin 
+Theme: Breeze Light [Plasma], Breeze [GTK3] 
+Icons: [Plasma], candy-icons [GTK2/3]
+
+It is possible that your OS + Python version combination, or some aspect of
+your OS or distro configuration may result in errors being thrown by this tool if
+you attempt to use it.  
+
+I of course take no responsibility for any harm this tool may cause to your
+system.  You use this tool at your own risk.
+
+I would however like to learn of any issues experienced using this tool.
+If you happen to hit a bug or exception, or something doesn't look right,
+kindly file a GitHub issue with the error details. Provide full error details,
+along with your OS and system specifications. 
+
+Please and thanks!
