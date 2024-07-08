@@ -45,12 +45,14 @@ Ensure you have the following installed on your system:
     *   rich
         
 
+You can check your version of python with the following command:
+`   python3 --version   `
+
 Ensure that your terminal supports the UTF8 character set for proper display of status icons.
 
 You can install the dependencies via pip:
 `   pip install pyyaml rich   `
 
-2.  `python3 --version`
 
 ### Installation
 
