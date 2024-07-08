@@ -105,12 +105,26 @@ Arguments:
 ### Example Output ###
 
 Here's an example of how the output will appear:
-![Screenshot of Hi](assets/hi-example-screenshot.png)
+![hi tool output](assets/hi-example-screenshot.png)
 
 An example of verbose output, showing the system check 'info:' field data:
-![Screenshot of Hi](assets/Screenshot_20240707_133302-hi-verbose-output.png)
+![verbose output](assets/Screenshot_20240707_133302-hi-verbose-output.png)
 
 ### How It Works ###
+The main section is a set of one or more two-column tables with group names
+for their column headers.
+
+Within each column, a list of system checks are displayed, showing either
+disabled/enabled, or active/inactive respectively, represented by the X and
+/ characters.
+
+After the system checks, two other pieces of system information is
+displayed.  The Operating System End-of-Life date, and a filesystem
+utilization summary.  This section looks like the following:
+
+![OS EOL and Filesystem Output](assets/Screenshot_20240708_014437-filesystem-os-eol.jpeg)
+
+
 *Configuration Loading:* The script starts by loading the YAML configuration file (config/checks.yml). This file specifies different services and checks categorized into groups such as Media, Tools, Security, Backup, Data, and Mount.
 ```
 def get_checks_yaml(checks_yaml):
