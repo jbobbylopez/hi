@@ -173,8 +173,8 @@ For an example of a more complex check, take a look at the one defined for Expre
      command: |
        expressvpn status | grep -i connected | sed "s/\\x1b\\[[0-9;]*[mGK]//g"
 ```
-In the case of ExpressVPN, I don't just want to check if the process is running, but I'm
-interested in capturing a portion of the command output to be included in the 'hi' tool reporting.
+In the case of ExpressVPN, I'm not just interested in checking if the process is running, I'm also
+interested in capturing a portion of the command output to be included in the reporting output of 'hi'.
 
 In order to leverage that output, there is a custom handler defined in `host_information.py`:
 ```
