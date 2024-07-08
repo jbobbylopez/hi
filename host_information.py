@@ -64,7 +64,6 @@ def get_groups_yaml(groups_yaml):
 
 def compile_output_messages(process, output, group, info=None):
     output_messages = []
-    print("process.lower: " + process.lower())
 
     if output:
         if 'data backup' in process.lower():
