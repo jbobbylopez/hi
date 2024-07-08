@@ -126,7 +126,7 @@ displayed.  The Operating System End-of-Life date, and a filesystem
 utilization summary.  This section looks like the following:
 
 ![OS EOL and Filesystem Output](assets/Screenshot_20240708_014437-filesystem-os-eol.jpeg)
-.
+
 Groups can be customized in the config/groups.yml file, and only those system checks
 configured with the groups defined will be reported.
 
