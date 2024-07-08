@@ -99,7 +99,7 @@ Now you can run the script using the command:
 #### Options and Arguments
 Arguments:
 
--  '-verbose': - show check description from the 'info:' field in the checks.yml file.
+-  '-verbose': Show check description from the 'info:' field in the checks.yml file.
 
 #### Setting Up a Continuously Updating Monitor for 'hi'
 To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the follwoing function to your ~/.bashrc file:
