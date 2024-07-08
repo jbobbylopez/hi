@@ -131,6 +131,8 @@ utilization summary.  This section looks like the following:
 
 ![OS EOL and Filesystem Output](assets/Screenshot_20240708_014437-filesystem-os-eol.jpeg)
 
+### Behind The Scenes ###
+To get an idea of how this all comes together, consider the following:
 
 *Configuration Loading:* The script starts by loading the YAML configuration file (config/checks.yml). This file specifies different services and checks categorized into groups such as Media, Tools, Security, Backup, Data, and Mount.
 ```
@@ -145,6 +147,7 @@ def check_process(process, command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout
 ```
+
 ### Customizing the Checks ###
 The config/checks.yml file defines the checks that the tool will perform. Each entry in the file specifies a group and a command.
 - group: The category of the service (e.g., Tools, Data, Backup, Media, Security, Mount).
