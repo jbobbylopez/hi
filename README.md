@@ -120,8 +120,10 @@ The main section is a set of one or more two-column tables with group names
 for their column headers.
 
 Within each column, a list of system checks are displayed, showing either
-disabled/enabled, or active/inactive respectively, represented by the X and
-/ characters.
+disabled/enabled, or active/inactive, represented by [❌] and [✅]
+respectively. Different indicators may be employed based on the groups
+configured.  For example, the Tools group uses the [💡] and [⚫]
+indicators.
 
 After the system checks, two other pieces of system information is
 displayed.  The Operating System End-of-Life date, and a filesystem
