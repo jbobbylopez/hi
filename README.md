@@ -151,7 +151,7 @@ new_service:
   group: Tools
   command: ps -ef | grep -i "[n]ew_service"
 ```
-You can review all the existing checks defined in 'config/checks.yml' for more examples.
+You can review all the existing checks defined in `config/checks.yml` for more examples.
 
 ### Contributing ###
 1. Fork the repository.
