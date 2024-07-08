@@ -149,7 +149,7 @@ You can add or modify checks to suit your needs. For example:
 ```
 new_service:
   group: Tools
-  command: ps -ef | grep -i '[n]ew_service'
+  command: ps -ef | grep -i "[n]ew_service"
 ```
 
 ### Contributing ###
