@@ -102,7 +102,7 @@ Arguments:
 -  '-verbose': Show check description from the 'info:' field in the checks.yml file.
 
 #### Setting Up a Continuously Updating Monitor for 'hi'
-To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the follwoing function to your ~/.bashrc file:
+To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the following function to your ~/.bashrc file:
 In this case, the watch command would monitor the output of 'hi' every 2 seconds.
 ```
 host_information_watch() {
