@@ -87,6 +87,7 @@ to learn about how to instrument more complex system checks.
     
 
 Add an alias to your ~/.bashrc to call this script:
+
 `alias hi="python3 /home/jbl/scripts/hi/host_information.py $@"`
 
 After adding these lines, save the ~/.bashrc file and apply the changes:
