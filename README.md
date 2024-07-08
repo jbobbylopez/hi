@@ -25,7 +25,6 @@ Getting Started
 ---------------
 
 ### Prerequisites
-
 Ensure you have the following installed on your system:
 
 *   Python 3.x (>= 3.6)
@@ -55,7 +54,6 @@ You can install the dependencies via pip:
 
 
 ### Installation
-
 1.  `git clone https://github.com/jbobbylopez/hi.git`
 
 `cd hi`
@@ -66,7 +64,6 @@ You can install the dependencies via pip:
     
 
 ### Configuration
-
 Customize the services and checks in the `config/checks.yml` file located in the repository. This configuration file allows you to define any number of checks to monitor services or functionalities available via the command line.
 
 Example configuration reference:
@@ -85,7 +82,6 @@ Information](https://dev.to/jbobbylopez/saying-hi-to-your-linux-host-information
 to learn about how to instrument more complex system checks.
 
 ### Usage
-
 1.  `python3 host_information.py`
     
 2.  **(Optional)** Set up a bash function and alias to run the script more easily.
@@ -108,12 +104,12 @@ Arguments:
 
 
 ### Example Output ###
-
 Here's an example of how the output will appear:
 ![hi tool output](assets/hi-example-screenshot.png)
 
 An example of verbose output, showing the system check 'info:' field data:
 ![verbose output](assets/Screenshot_20240707_133302-hi-verbose-output.png)
+
 
 ### How It Works ###
 The main section is a set of one or more two-column tables with group names
@@ -130,6 +126,14 @@ displayed.  The Operating System End-of-Life date, and a filesystem
 utilization summary.  This section looks like the following:
 
 ![OS EOL and Filesystem Output](assets/Screenshot_20240708_014437-filesystem-os-eol.jpeg)
+.
+Groups can be customized in the config/groups.yml file, and only those system checks
+configured with the groups defined will be reported.
+
+Example of the groups.yml and checks.yml configuration files:
+![Groups and Checks configuration](assets/Screenshot_20240707_133537-groups-and-checks-config.png)
+
+
 
 ### Behind The Scenes ###
 To get an idea of how this all comes together, consider the following:
@@ -148,6 +152,7 @@ def check_process(process, command):
     return result.stdout
 ```
 
+
 ### Customizing the Checks ###
 The config/checks.yml file defines the checks that the tool will perform. Each entry in the file specifies a group and a command.
 - group: The category of the service (e.g., Tools, Data, Backup, Media, Security, Mount).
@@ -159,7 +164,29 @@ new_service:
   group: Tools
   command: ps -ef | grep -i "[n]ew_service"
 ```
+
+For an exmaple of a more complex check, take a look at the one defined for ExpressVPN:
+```
+   ExpressVPN:
+     info: For general privacy and security.
+     group: Security
+     command: |
+       expressvpn status | grep -i connected | sed "s/\\x1b\\[[0-9;]*[mGK]//g"
+```
+In the case of ExpressVPN, I don't just want to check if the process is running, but I'm
+interested in capturing a portion of the command output to be included in the 'hi' tool reporting.
+
+In order to leverage that output, there is a custom handler defined in `host_information.py`:
+```
+         elif 'expressvpn' in process.lower():    
+             if re.search("Connected", output.strip()):    
+                 output_messages.append(f"[✅] {process} Status: {output.strip()}")    
+             else:    
+                 output_messages.append(f"[❌] {process} Status: {output.strip()}")
+```
+
 You can review all the existing checks defined in `config/checks.yml` for more examples.
+
 
 #### Setting Up a Continuously Updating Monitor for 'hi'
 To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the following function to your ~/.bashrc file:
