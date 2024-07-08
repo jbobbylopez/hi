@@ -4,8 +4,31 @@ This will help me gather my thoughts and prioritize the work.
 Host Information 'hi' Tool Roadmap
 ----------------------------------
 
-Target Features:
+[Guiding Principles] =======================
+Although this tool is fun to use, and fun to develop, in order for this
+tool to grow and be successful, some goals and expectations should be
+established.
 
+1) This is not intended to be a full-fledged monitoring tool.
+This tool is not intended to replace Nagios, Zabbix, Prometheus, Munin, or
+any of the other established tools in this space.  This tool is more
+supplemental.  It is intended to help with productivity and visibility from
+a personal work-flow perspective.  There may be opportunities to integrate
+with some of these more established tools in the future, but currently
+there are no plans for that.
+
+2) The goal of this tool is to provide a pleasant user-experience on the
+linux command-line for user-customized notifications and indicators. There
+may be some other extra tools and features added along the way, but this
+remains the primary goal.
+
+3) Keep it light.  Keep it simple.  This tool should remain focused on
+providing clean, clear system checks and reporting information.  This tool
+should not evolve into an over-complicated mess.
+
+
+
+[Target Features] ===========================
 - Sub-checks - the ability to check various sub-status using the same check delclaration pattern.
 
 - [✅] Dynamic Groups: Currently the groups are hard-coded (Tools, Data, Mounts, Security, Backup..).
@@ -18,16 +41,18 @@ a flag on the command-line, or in the HTTP server / API output.
 
 
 
-Likely Features:
-
+[Likely Features] ==========================
 - Breaking checks.yml out into multiple files. I imagine that if I'm going to implement
 'Dynamic Groups', then I might as well group the checks with filenames representing those groups. 
 It would also make managing checks an easier task.
 
+- Remove the dependency on 'watch' command for continuous monitoring.
+  Enable continously updated output / monitoring as a native part of the
+  tool, configured via yaml.
 
 
-Other Ideas:
 
+[ Other Ideas ] ============================
 - HTTP Extended Information: I would provide the ability to configure 'hi' to run
 a user-space http service that would publish the output in JSON format in a version
 controlled API. I could also render a full HTML report that looks similar to the
@@ -43,7 +68,11 @@ information from target remote hosts in a command-line friendly manner
 This would also support automation and integration capabilities with other 
 tools and pipelines.
 
+- Making use of ssh keys to execute commands on remote hosts.
 
+- Logging, state change tracking.
+
+- Single-line horizontal graph as check output.  Can a check be a mini progress bar?
 
 
 More to come I'm sure.
