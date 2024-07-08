@@ -77,7 +77,7 @@ checks:
 
 Also be sure to read the article [Say "hi" to your Linux Host
 Information](https://dev.to/jbobbylopez/saying-hi-to-your-linux-host-information-4fh6)
-to learn about about how to instrument more complex system checks.
+to learn about how to instrument more complex system checks.
 
 ### Usage
 
