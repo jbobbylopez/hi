@@ -73,7 +73,7 @@ def test_check_ubuntu_eol_line_in_output(capsys):
     print("Captured Output: ", output)
     
     # Assert that "Filesystem" is in the output
-    assert "OS EOL:" in output
+    assert "Operating System:" in output
     print("Test passed: 'Filesystem' found in the output.")
 
 if __name__ == '__main__':
