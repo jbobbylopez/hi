@@ -161,10 +161,10 @@ You can review all the existing checks defined in `config/checks.yml` for more e
 5. Open a Pull Request.
 
 ### Testing ###
-Preliminary tests have been defined in 'test_host_information.py', many
+Preliminary tests have been defined in `test_host_information.py`, many
 more are expected to be added as the code for this tool increases in
 complexity.  You can run the tests yourself as follows:
-    pytest -v test_host_information.py
+    `pytest -v test_host_information.py`
 
 ### License ###
 This project is licensed under the MIT License. See the LICENSE file for details.
