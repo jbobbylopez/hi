@@ -1,4 +1,4 @@
-![Screenshot of Hi](assets/hi-example-screenshot.png)
+![Screenshot of Hi](assets/Screenshot_20240707_133302-hi-verbose-output.png)
 
 hi - Host Information
 =====================
@@ -101,30 +101,14 @@ Arguments:
 
 -  '-verbose': Show check description from the 'info:' field in the checks.yml file.
 
-#### Setting Up a Continuously Updating Monitor for 'hi'
-To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the following function to your ~/.bashrc file:
-In this case, the watch command would monitor the output of 'hi' every 2 seconds.
-```
-host_information_watch() {
-    clear
-    watch -c -n 2 "python3 ~/path/to/hi/host_information.py"
-}
-```
-Again, replace ~/path/to/hi/ with the actual path to where you cloned the repository.
-
-Then, add an alias to call this function:
-`alias hi_watch=host_information_watch`
-
-After adding these lines, save the ~/.bashrc file and apply the changes:
-`source ~/.bashrc`
-
-Now you can run the continuously updating output from 'hi' using the command:
-`hi_watch`
 
 ### Example Output ###
 
 Here's an example of how the output will appear:
 ![Screenshot of Hi](assets/hi-example-screenshot.png)
+
+An example of verbose output, showing the system check 'info:' field data:
+![Screenshot of Hi](assets/Screenshot_20240707_133302-hi-verbose-output.png)
 
 ### How It Works ###
 *Configuration Loading:* The script starts by loading the YAML configuration file (config/checks.yml). This file specifies different services and checks categorized into groups such as Media, Tools, Security, Backup, Data, and Mount.
@@ -152,6 +136,26 @@ new_service:
   command: ps -ef | grep -i "[n]ew_service"
 ```
 You can review all the existing checks defined in `config/checks.yml` for more examples.
+
+#### Setting Up a Continuously Updating Monitor for 'hi'
+To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the following function to your ~/.bashrc file:
+In this case, the watch command would monitor the output of 'hi' every 2 seconds.
+```
+host_information_watch() {
+    clear
+    watch -c -n 2 "python3 ~/path/to/hi/host_information.py"
+}
+```
+Again, replace ~/path/to/hi/ with the actual path to where you cloned the repository.
+
+Then, add an alias to call this function:
+`alias hi_watch=host_information_watch`
+
+After adding these lines, save the ~/.bashrc file and apply the changes:
+`source ~/.bashrc`
+
+Now you can run the continuously updating output from 'hi' using the command:
+`hi_watch`
 
 ### Contributing ###
 1. Fork the repository.
