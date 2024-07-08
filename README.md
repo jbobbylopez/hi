@@ -165,7 +165,7 @@ new_service:
   command: ps -ef | grep -i "[n]ew_service"
 ```
 
-For an exmaple of a more complex check, take a look at the one defined for ExpressVPN:
+For an example of a more complex check, take a look at the one defined for ExpressVPN:
 ```
    ExpressVPN:
      info: For general privacy and security.
