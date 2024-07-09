@@ -103,7 +103,7 @@ def compile_output_messages(check, output, group, info=None, indicators=None, su
         output = "is stopped"
         if indicators:
             if 'negative' in indicators and 'icon' in indicators['negative']:
-                indicator = indicators['positive']['icon']
+                indicator = indicators['negative']['icon']
             if 'negative' in indicators and 'status' in indicators['negative']:
                 output = indicators['negative']['status'] 
         output_messages.append(f"[{indicator}] {check} {output}")
