@@ -71,12 +71,6 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     # successfully, and 'output' contains any data returned by the executed
     # command.  'check' contains the name of the check in config/check.yml.
     if cmd_output:
-        indicator = '✅'
-        if indicators:
-            if 'positive' in indicators and 'icon' in indicators['positive']:
-                indicator = indicators['positive']['icon']
-            if 'positive' in indicators and 'status' in indicators['positive']:
-                output = indicators['positive']['status'] 
 
         if 'data backup' in check.lower():
             # This little bit of date calculation for the backup
@@ -95,11 +89,17 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
             else:
                 output_messages.append(f"[❌] {check} Status: {cmd_output.strip()}")
         else:
+            indicator = '✅'
+            if indicators:
+                if 'positive' in indicators and 'icon' in indicators['positive']:
+                    indicator = indicators['positive']['icon']
+                if 'positive' in indicators and 'status' in indicators['positive']:
+                    output = indicators['positive']['status']
             try:
-                output = indicators['positive']['status']
+                output = indicators['positive']['status'].strip()
                 indicator = indicators['positive']['icon']
             except:
-                output = " is running" 
+                output = "is running" 
             output_messages.append(f"[{indicator}] {check} {output}")
 
     else:
