@@ -95,7 +95,11 @@ def compile_output_messages(check, output, group, info=None, indicators=None, su
             else:
                 output_messages.append(f"[❌] {check} Status: {output.strip()}")
         else:
-            output = "is running"
+            try:
+                output = indicators['positive']['status']
+                indicator = indicators['positive']['icon']
+            except:
+                output = " is running" 
             output_messages.append(f"[{indicator}] {check} {output}")
 
     else:

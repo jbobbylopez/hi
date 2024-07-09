@@ -71,6 +71,13 @@ checks:
     command: |
       curl localhost:3000 --silent | grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'
   Galaxy S20 (sshfs):
+    indicators:
+      positive:
+        icon: 📲 
+        status: is mounted
+      negative:
+        icon: 📱
+        status: is not mounted
     group: Mount
     command: |
       mount | grep -i '/mnt/GalaxyS20'
