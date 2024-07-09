@@ -82,7 +82,6 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
             # This little bit of date calculation for the backup
             # notification likely needs to be moved or handled differently.
             # Separate function for sure.
-            print("cmd_output: " + str(output))
             backup_date_str = cmd_output.strip().split(' ')[1]
             backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
             threshold_days = 7  # Assuming 7 days threshold for date_check
