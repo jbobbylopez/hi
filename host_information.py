@@ -132,11 +132,13 @@ def compile_output_messages(check, output, group, info=None, indicators=None, su
                 output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
 
             else:
-                if 'negative' in sub_check_indicators and 'icon' in sub_check_indicators['negative']:
-                    indicator = sub_check_indicators['positive']['icon']
-                if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
-                    sub_check_output = sub_check_indicators['negative']['status'] 
-                output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+                if 'indicators' in sub_checks[sub_check]:
+                    sub_check_indicators = sub_checks[sub_check]['indicators']
+                    if 'negative' in sub_check_indicators and 'icon' in sub_check_indicators['negative']:
+                        indicator = sub_check_indicators['negative']['icon']
+                    if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
+                        sub_check_output = sub_check_indicators['negative']['status'] 
+                output_messages.append(f" [{indicator}] {sub_check}: {sub_check_output}")
 
     final_output = "\n".join(output_messages)
     return final_output
