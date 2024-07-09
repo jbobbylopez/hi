@@ -26,6 +26,14 @@ checks:
     command: |
       ps -ef | grep -E "pts.* [v]i($| .*)"
   Data Backup:
+    info: My custom backup orchestration solution
+    indicators:
+      positive:
+        status:
+          icon: ✅
+      negative:
+        status:
+          icon: ❌
     group: Backup
     command: |
       stat ~/.jbl-backup.log | grep ^Modify

@@ -62,7 +62,7 @@ def get_groups_yaml(groups_yaml):
         groups = yaml.safe_load(file)
     return groups
 
-def compile_output_messages(check, output, group, info=None, indicators=None, sub_checks=None):
+def compile_output_messages(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
     status = ""
     check_indicators = None
     output_messages = []
@@ -70,7 +70,7 @@ def compile_output_messages(check, output, group, info=None, indicators=None, su
     # The below 'if output:' statement means that the command completed
     # successfully, and 'output' contains any data returned by the executed
     # command.  'check' contains the name of the check in config/check.yml.
-    if output:
+    if cmd_output:
         indicator = '✅'
         if indicators:
             if 'positive' in indicators and 'icon' in indicators['positive']:
@@ -82,7 +82,8 @@ def compile_output_messages(check, output, group, info=None, indicators=None, su
             # This little bit of date calculation for the backup
             # notification likely needs to be moved or handled differently.
             # Separate function for sure.
-            backup_date_str = output.strip().split(' ')[1]
+            print("cmd_output: " + str(output))
+            backup_date_str = cmd_output.strip().split(' ')[1]
             backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
             threshold_days = 7  # Assuming 7 days threshold for date_check
             if datetime.now() - backup_date > timedelta(days=threshold_days):
@@ -90,10 +91,10 @@ def compile_output_messages(check, output, group, info=None, indicators=None, su
             else:
                 output_messages.append(f"[✅] {check}: Last modified date {backup_date_str} is within {threshold_days} days")
         elif 'expressvpn' in check.lower():
-            if re.search("Connected", output.strip()):
-                output_messages.append(f"[✅] {check} Status: {output.strip()}")
+            if re.search("Connected", cmd_output.strip()):
+                output_messages.append(f"[✅] {check} Status: {cmd_output.strip()}")
             else:
-                output_messages.append(f"[❌] {check} Status: {output.strip()}")
+                output_messages.append(f"[❌] {check} Status: {cmd_output.strip()}")
         else:
             try:
                 output = indicators['positive']['status']
