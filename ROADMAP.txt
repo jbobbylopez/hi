@@ -29,12 +29,12 @@ should not evolve into an over-complicated mess.
 
 
 [Target Features] ===========================
-- Sub-checks - the ability to check various sub-status using the same check delclaration pattern.
+- [✅] Sub-checks - the ability to check various sub-status using the same check delclaration pattern.
 
 - [✅] Dynamic Groups: Currently the groups are hard-coded (Tools, Data, Mounts, Security, Backup..).
 This should be dynamic, and based on a yaml config.
 
-- [✅] Check Description: I want to add a 'description:' field to each check (and sub-check)
+- [✅] Check Description: I want to add a 'info:' field to each check (and sub-check)
 to provide details on what the check is doing (or why it's important). These details don't 
 need to be part of the default 'hi' tool output, but can be shown as extended information with
 a flag on the command-line, or in the HTTP server / API output.
