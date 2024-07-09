@@ -25,6 +25,11 @@ checks:
   ExpressVPN:
     info: For general privacy and security.
     group: Security
+    indicators:
+      positive:
+        icon: 🔑
+      negative:
+        icon:
     command: |
       expressvpn status | grep -i connected | sed "s/\\x1b\\[[0-9;]*[mGK]//g"
     sub_checks:
@@ -40,6 +45,11 @@ checks:
             icon: ⚫
   Dropbox:
     group: Mount
+    indicators:
+      positive:
+        icon: 📂
+      negative:
+        icon:
     command: |
       ps -ef | grep [d]ropbox
     info: Monitoring that dropbox process is running
@@ -82,6 +92,13 @@ checks:
   Thunderbird:
     info: My favorite mail client
     group: Communications
+    indicators:
+      positive:
+        status:
+        icon: 📧
+      negative:
+        status:
+        icon: 📧
     command: |
       ps -ef | grep -E "[t]hunderbird"
     sub_checks:
