@@ -27,8 +27,19 @@ checks:
     group: Security
     command: |
       expressvpn status | grep -i connected | sed "s/\\x1b\\[[0-9;]*[mGK]//g"
+    sub_checks:
+      Updates:
+        command: |
+          expressvpn status | grep update | sed "s/\\x1b\\[[0-9;]*[mGK]//g"
+        indicators:
+          positive:
+            status: Update Available!
+            icon: 💡
+          negative:
+            status: No update available.
+            icon: ⚫
   Dropbox:
-    group: Mount  # Updated to Mount group
+    group: Mount
     command: |
       ps -ef | grep [d]ropbox
     info: Monitoring that dropbox process is running
@@ -69,9 +80,22 @@ checks:
     command: |
       ps -ef | grep -E "[/]opt/Signal/signal-desktop"
   Thunderbird:
+    info: My favorite mail client
     group: Communications
     command: |
       ps -ef | grep -E "[t]hunderbird"
+    sub_checks:
+      Memory Usage:
+        command: |
+          ps --no-headers -o rss -C thunderbird | awk '{sum+=$1} END {printf "%.2f MB (%.2f GB)\n", sum/1024, sum/1048576}'
+        indicators:
+          positive:
+              icon: 💾
+          negative:
+              icon: 💾
+      Version:
+        command: |
+          thunderbird --version
   CUPS:
     info: CUPS print service
     group: Media

@@ -62,9 +62,12 @@ def get_groups_yaml(groups_yaml):
         groups = yaml.safe_load(file)
     return groups
 
-def compile_output_messages(process, output, group, info=None):
+def compile_output_messages(process, output, group, info=None, sub_checks=None):
     output_messages = []
 
+    # The below 'if output:' statement means that the command completed
+    # successfully, and 'output' contains any data returned by the executed
+    # command.  'process' is the name of the check in config/checks.yml.
     if output:
         if 'data backup' in process.lower():
             backup_date_str = output.strip().split(' ')[1]
@@ -94,9 +97,37 @@ def compile_output_messages(process, output, group, info=None):
         else:
             output_messages.append(f"[❌] {process} is not running")
 
-    # Add info message if present
+    # Append info: value if present
     if info:
         output_messages.append(f"  [🔹] {info}")
+
+    # Append sub_checks if present
+    # .. this will likely need to be turned into it's own function
+    if sub_checks:
+        sub_check_indicators = None
+        sub_check_output = None
+
+        for sub_check in sub_checks:
+            indicator = '⚫'
+            status = ""
+            sub_check_command = sub_checks[sub_check]['command']
+            if 'indicators' in sub_checks[sub_check]:
+                sub_check_indicators = sub_checks[sub_check]['indicators']
+            sub_check_output = check_process(sub_check, sub_check_command).strip()
+
+            if sub_check_output:
+                if 'positive' in sub_check_indicators and 'icon' in sub_check_indicators['positive']:
+                    indicator = sub_check_indicators['positive']['icon']
+                if 'positive' in sub_check_indicators and 'status' in sub_check_indicators['positive']:
+                    sub_check_output = sub_check_indicators['positive']['status'] 
+                output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+
+            else:
+                if 'negative' in sub_check_indicators and 'icon' in sub_check_indicators['negative']:
+                    indicator = sub_check_indicators['positive']['icon']
+                if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
+                    sub_check_output = sub_check_indicators['negative']['status'] 
+                output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
 
     final_output = "\n".join(output_messages)
     return final_output
@@ -107,12 +138,14 @@ def check_engine_yaml(check_type, verbose=False):
     checks = checks['checks']
 
     group_output = []
+    sub_checks = None
 
     for process, attribs in checks.items():
         if attribs['group'] == check_type:
             output = check_process(process, attribs['command'])
+            sub_checks = attribs.get('sub_checks') if verbose else None
             info = attribs.get('info') if verbose else None
-            group_output.append(compile_output_messages(process, output, check_type, info))
+            group_output.append(compile_output_messages(process, output, check_type, info, sub_checks))
 
     return group_output
 
