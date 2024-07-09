@@ -62,41 +62,81 @@ def get_groups_yaml(groups_yaml):
         groups = yaml.safe_load(file)
     return groups
 
-def compile_output_messages(process, output, group, info=None):
+def compile_output_messages(check, output, group, info=None, indicators=None, sub_checks=None):
+    status = ""
+    check_indicators = None
     output_messages = []
 
+    # The below 'if output:' statement means that the command completed
+    # successfully, and 'output' contains any data returned by the executed
+    # command.  'check' contains the name of the check in config/check.yml.
     if output:
-        if 'data backup' in process.lower():
+        indicator = '✅'
+        if indicators:
+            if 'positive' in indicators and 'icon' in indicators['positive']:
+                indicator = indicators['positive']['icon']
+            if 'positive' in indicators and 'status' in indicators['positive']:
+                output = indicators['positive']['status'] 
+
+        if 'data backup' in check.lower():
+            # This little bit of date calculation for the backup
+            # notification likely needs to be moved or handled differently.
+            # Separate function for sure.
             backup_date_str = output.strip().split(' ')[1]
             backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
-            threshold_days = 7  # Assuming 7 days threshold for date_check processes
+            threshold_days = 7  # Assuming 7 days threshold for date_check
             if datetime.now() - backup_date > timedelta(days=threshold_days):
-                output_messages.append(f"[❌] {process}: Last modified date {backup_date_str} is older than {threshold_days} days")
+                output_messages.append(f"[❌] {check}: Last modified date {backup_date_str} is older than {threshold_days} days")
             else:
-                output_messages.append(f"[✅] {process}: Last modified date {backup_date_str} is within {threshold_days} days")
-        elif 'expressvpn' in process.lower():
+                output_messages.append(f"[✅] {check}: Last modified date {backup_date_str} is within {threshold_days} days")
+        elif 'expressvpn' in check.lower():
             if re.search("Connected", output.strip()):
-                output_messages.append(f"[✅] {process} Status: {output.strip()}")
+                output_messages.append(f"[✅] {check} Status: {output.strip()}")
             else:
-                output_messages.append(f"[❌] {process} Status: {output.strip()}")
+                output_messages.append(f"[❌] {check} Status: {output.strip()}")
         else:
-            if group == "Tools":
-                output_messages.append(f"[💡] {process} is running")
-            elif group == "Mount":
-                output_messages.append(f"[✅] {process} is mounted")
-            else:
-                output_messages.append(f"[✅] {process} is running")
-    else:
-        if group == "Tools":
-            output_messages.append(f"[⚫] {process} is not running")
-        elif group == "Mount":
-            output_messages.append(f"[❌] {process} is not mounted")
-        else:
-            output_messages.append(f"[❌] {process} is not running")
+            output = "is running"
+            output_messages.append(f"[{indicator}] {check} {output}")
 
-    # Add info message if present
+    else:
+        indicator = '❌'
+        output = "is stopped"
+        if indicators:
+            if 'negative' in indicators and 'icon' in indicators['negative']:
+                indicator = indicators['positive']['icon']
+            if 'negative' in indicators and 'status' in indicators['negative']:
+                output = indicators['negative']['status'] 
+        output_messages.append(f"[{indicator}] {check} {output}")
+
+    # Append info: value if present
     if info:
         output_messages.append(f"  [🔹] {info}")
+
+    # Append sub_checks if present
+    # .. this will likely need to be turned into it's own function
+    if sub_checks:
+        for sub_check in sub_checks:
+            indicator = '⚫'
+            status = ""
+            sub_check_indicators = None
+            sub_check_command = sub_checks[sub_check]['command']
+            sub_check_output = check_process(sub_check, sub_check_command).strip()
+
+            if sub_check_output:
+                if 'indicators' in sub_checks[sub_check]:
+                    sub_check_indicators = sub_checks[sub_check]['indicators']
+                    if 'positive' in sub_check_indicators and 'icon' in sub_check_indicators['positive']:
+                        indicator = sub_check_indicators['positive']['icon']
+                    if 'positive' in sub_check_indicators and 'status' in sub_check_indicators['positive']:
+                        sub_check_output = sub_check_indicators['positive']['status'] 
+                output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+
+            else:
+                if 'negative' in sub_check_indicators and 'icon' in sub_check_indicators['negative']:
+                    indicator = sub_check_indicators['positive']['icon']
+                if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
+                    sub_check_output = sub_check_indicators['negative']['status'] 
+                output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
 
     final_output = "\n".join(output_messages)
     return final_output
@@ -107,12 +147,15 @@ def check_engine_yaml(check_type, verbose=False):
     checks = checks['checks']
 
     group_output = []
+    sub_checks = None
 
-    for process, attribs in checks.items():
+    for check, attribs in checks.items():
         if attribs['group'] == check_type:
-            output = check_process(process, attribs['command'])
+            output = check_process(check, attribs['command'])
+            sub_checks = attribs.get('sub_checks') if verbose else None
             info = attribs.get('info') if verbose else None
-            group_output.append(compile_output_messages(process, output, check_type, info))
+            indicators = attribs.get('indicators')
+            group_output.append(compile_output_messages(check, output, check_type, info, indicators, sub_checks))
 
     return group_output
 
@@ -123,7 +166,7 @@ def display_checks():
     console = Console()
     script_dir = get_script_dir()
     groups = get_groups_yaml(os.path.join(script_dir, "config/groups.yml"))['groups']
-    verbose = '-verbose' in sys.argv
+    verbose = 'info' in sys.argv
 
     # Get and print the local IP address
     local_ip_result = get_ip_address()
