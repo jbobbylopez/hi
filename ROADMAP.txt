@@ -28,20 +28,13 @@ should not evolve into an over-complicated mess.
 
 
 
-[Target Features] ===========================
-- [✅] Sub-checks - the ability to check various sub-status using the same check delclaration pattern.
-
-- [✅] Dynamic Groups: Currently the groups are hard-coded (Tools, Data, Mounts, Security, Backup..).
-This should be dynamic, and based on a yaml config.
-
-- [✅] Check Description: I want to add a 'info:' field to each check (and sub-check)
-to provide details on what the check is doing (or why it's important). These details don't 
-need to be part of the default 'hi' tool output, but can be shown as extended information with
-a flag on the command-line, or in the HTTP server / API output.
+[Target Features and Improvements] ===========================
+- Code restructuring / refactoring to increase modularity / maintainability
+- Improved testing scope, focused on indicators and statuses
+- Externalization of hard-coded configs into config/hi.yml
 
 
-
-[Likely Features] ==========================
+[Likely Features and Improvements] ==========================
 - Breaking checks.yml out into multiple files. I imagine that if I'm going to implement
 'Dynamic Groups', then I might as well group the checks with filenames representing those groups. 
 It would also make managing checks an easier task.
@@ -52,7 +45,7 @@ It would also make managing checks an easier task.
 
 
 
-[ Other Ideas ] ============================
+[ Backlog Ideas and Improvements ] ============================
 - HTTP Extended Information: I would provide the ability to configure 'hi' to run
 a user-space http service that would publish the output in JSON format in a version
 controlled API. I could also render a full HTML report that looks similar to the
@@ -75,4 +68,15 @@ tools and pipelines.
 - Single-line horizontal graph as check output.  Can a check be a mini progress bar?
 
 
-More to come I'm sure.
+[ Completed Features and Improvements ] ============================
+
+- [✅] Sub-checks - the ability to check various sub-status using the same check delclaration pattern.
+
+- [✅] Dynamic Groups: Currently the groups are hard-coded (Tools, Data, Mounts, Security, Backup..).
+This should be dynamic, and based on a yaml config.
+
+- [✅] Check Description: I want to add a 'info:' field to each check (and sub-check)
+to provide details on what the check is doing (or why it's important). These details don't 
+need to be part of the default 'hi' tool output, but can be shown as extended information with
+a flag on the command-line, or in the HTTP server / API output.
+
