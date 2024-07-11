@@ -51,17 +51,6 @@ changes may already be in development progress.
 - Improved testing scope, focused on indicators and statuses
 
 #### Logical Separation of Concerns ####
-- Externalization of hard-coded configs into config/hi.yml
-
-#### Likely Features and Improvements ####
-Not guaranteed, but likely to be implemented if time permits.
-
-#### Design Improvements ####
-- Breaking checks.yml out into multiple files. I imagine that if I'm going to implement
-'Dynamic Groups', then I might as well group the checks with filenames representing those groups. 
-It would also make managing checks an easier task.
-
-#### Logical Separation of Concerns ####
 - [🚧] Remove the dependency on 'watch' command for continuous monitoring.  The
   GNU 'watch' command that comes with most Linux distributions tends to
   strip ANSI color codes from plain-text output.  Although the 'watch'
@@ -73,10 +62,18 @@ It would also make managing checks an easier task.
 
   **GOAL:** Enable continously updated output / monitoring as a native part of the
   tool, configured via yaml.
+- Externalization of hard-coded configs into config/hi.yml
+
+## Likely Features and Improvements ##
+Not guaranteed, but likely to be implemented if time permits.
+
+#### Design Improvements ####
+- Breaking checks.yml out into multiple files. I imagine that if I'm going to implement
+'Dynamic Groups', then I might as well group the checks with filenames representing those groups. 
+It would also make managing checks an easier task.
 
 
-
-# Backlog Ideas and Improvements #
+## Backlog Ideas and Improvements ##
 These are ideas that seem nice or useful, but may be a bit too ambitions to
 take on, may go against the "Guiding Principles" above, or may not actually be that useful.
 
