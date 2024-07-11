@@ -53,7 +53,6 @@ changes may already be in development progress.
 #### Logical Separation of Concerns ####
 - Externalization of hard-coded configs into config/hi.yml
 
-
 #### Likely Features and Improvements ####
 Not guaranteed, but likely to be implemented if time permits.
 
@@ -81,8 +80,8 @@ It would also make managing checks an easier task.
 These are ideas that seem nice or useful, but may be a bit too ambitions to
 take on, may go against the "Guiding Principles" above, or may not actually be that useful.
 
-However I'm still interested in do them, and one day I may just sit down
-and hammer out a solution for it, so who knows!
+However I'm still interested in doing them. One day I may just sit down
+and hammer out a solution for it, who knows!
 
 
 #### Design Improvements / User Experience ####
