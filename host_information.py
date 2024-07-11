@@ -248,6 +248,4 @@ console = Console()
 if 'watch' in sys.argv:
     hi_watch()
 else:
-    display_checks()
-    check_ubuntu_eol.main()
-    df_bargraph.display_bar_graph()
+    display_hi_report()
