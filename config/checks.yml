@@ -25,6 +25,10 @@ checks:
         icon: ⚫
     command: |
       ps -ef | grep -E "pts.* [v]i($| .*)"
+    sub_checks:
+      Memory Usage:
+        command: |
+          ps --no-headers -o rss -C vi | awk '{sum+=$1} END {printf "%.2f MB (%.2f GB)\n", sum/1024, sum/1048576}'
   Data Backup:
     info: My custom backup orchestration solution
     indicators:
