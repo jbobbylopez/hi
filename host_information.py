@@ -1,15 +1,23 @@
 import sys
-from rich.console import Console
-from rich.table import Table
-from rich.box import MINIMAL
+import time
 import subprocess
 import socket
 import re
 import os
-from datetime import datetime, timedelta
 import yaml
 import check_ubuntu_eol
 import df_bargraph
+from datetime import datetime, timedelta
+from rich.console import Console
+from rich.table import Table
+from rich.box import MINIMAL
+from rich.align import Align
+
+def center_text(text):
+    """
+    Center the given text based on the terminal width using Rich.
+    """
+    return Align.center(text)
 
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
@@ -169,7 +177,6 @@ def display_checks():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
     """
-    console = Console()
     script_dir = get_script_dir()
     groups = get_groups_yaml(os.path.join(script_dir, "config/groups.yml"))['groups']
     verbose = 'info' in sys.argv
@@ -202,7 +209,37 @@ def display_checks():
 
         console.print(table)
 
+def display_hi_watch_data():
+    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
+    display_checks()  # Call the display_checks function to print the system checks
+    check_ubuntu_eol.main()
+    df_bargraph.display_bar_graph()
+    console.print(center_text("[ continuous monitoring in progress.. ]"), style="bold green")
+    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
+    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
+
+def hi_watch(interval=2):
+    """
+    Continuously display the output of the display_checks function, updating every 'interval' seconds.
+    """
+    print("\033[?25l", end='')  # Hide the cursor
+    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
+    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
+    display_hi_watch_data()
+    if 'watch' in sys.argv:
+        try:
+            while True:
+                #os.system('clear')  # For Linux/OSX, use 'cls' for Windows
+                time.sleep(interval)  # Wait for the specified interval before updating again
+                #print("\033[H\033[J", end='')  # ANSI escape code to clear the screen and move cursor to top-left
+                display_hi_watch_data()
+        except KeyboardInterrupt:
+            os.system('clear')  # For Linux/OSX, use 'cls' for Windows
+            print("\n[hi: continuous monitoring stopped.]")
+        finally:
+            print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
+
 # Call the function to execute
-display_checks()
-check_ubuntu_eol.main()
-df_bargraph.display_bar_graph()
+#hi_watch if 'watch' in sys.argv else display_checks()
+console = Console()
+hi_watch()
