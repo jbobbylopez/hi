@@ -209,37 +209,45 @@ def display_checks():
 
         console.print(table)
 
-def display_hi_watch_data():
-    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
+def display_hi_report():
     display_checks()  # Call the display_checks function to print the system checks
     check_ubuntu_eol.main()
     df_bargraph.display_bar_graph()
-    console.print(center_text("[ continuous monitoring in progress.. ]"), style="bold green")
-    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
+
+
+def display_hi_watch_report():
     print("\033[H", end='')  # ANSI escape code to move cursor to top-left
+    display_hi_report()
+    console.print(center_text("[🟢] watching.. (ctrl-c to quit)"), style="bold green")
+
+def hide_cursor_clear_screen():
+    print("\033[?25l", end='')  # Hide the cursor
+    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
+    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
 
 def hi_watch(interval=2):
     """
     Continuously display the output of the display_checks function, updating every 'interval' seconds.
     """
-    print("\033[?25l", end='')  # Hide the cursor
-    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
-    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
-    display_hi_watch_data()
+    hide_cursor_clear_screen()
+    display_hi_watch_report()
     if 'watch' in sys.argv:
         try:
             while True:
-                #os.system('clear')  # For Linux/OSX, use 'cls' for Windows
                 time.sleep(interval)  # Wait for the specified interval before updating again
-                #print("\033[H\033[J", end='')  # ANSI escape code to clear the screen and move cursor to top-left
-                display_hi_watch_data()
+                display_hi_watch_report()
         except KeyboardInterrupt:
-            os.system('clear')  # For Linux/OSX, use 'cls' for Windows
-            print("\n[hi: continuous monitoring stopped.]")
+            console.clear()
+            #os.system('clear')  # For Linux/OSX, use 'cls' for Windows
+            console.print("\n[hi: continuous monitoring stopped.]")
         finally:
             print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
 
 # Call the function to execute
-#hi_watch if 'watch' in sys.argv else display_checks()
 console = Console()
-hi_watch()
+if 'watch' in sys.argv:
+    hi_watch()
+else:
+    display_checks()
+    check_ubuntu_eol.main()
+    df_bargraph.display_bar_graph()
