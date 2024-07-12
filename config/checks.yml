@@ -1,11 +1,11 @@
 checks:
   qbittorrent:
-    info: qbittorrent client for free to use, public domain films from the national film registry.
+    info: qbittorrent client
     group: Media
     command: |
       ps -ef | grep -E '([q]bittorrent)'
   minidlna:
-    info: UPnP server for public domain films and videos
+    info: UPnP server (pictures/videos)
     group: Media
     command: |
       ps -ef | grep -E '([m]inidlna)'

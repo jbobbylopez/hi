@@ -1,9 +1,11 @@
 import pytest
 import subprocess
 import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
 import io
 import re
-import host_information  # Ensure this is the correct name of your main script without the .py extension
+import host_information
 import check_ubuntu_eol
 import df_bargraph
 
