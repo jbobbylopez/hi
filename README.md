@@ -3,9 +3,9 @@
 hi - Host Information
 =====================
 
-**PLEASE NOTE: This tool is still in early development.  Things will change
+**PLEASE NOTE:** This tool is still in early development.  Things will change
 quickly, and there will likely be bugs along the way.  Follow the project
-to stay updated on new features and fixes.**
+to stay updated on new features and fixes.
 
 "hi" is a command-line tool designed to monitor and display the status of various services running on a host. The services and their respective checks are customizable via a YAML configuration file, allowing for flexibility to suit different monitoring needs. This tool leverages the Rich library to provide visually pleasing output that includes UTF8 status icons, so it should be run in a terminal that supports the UTF8 character-set.
 
@@ -52,9 +52,6 @@ You can check your version of python with the following command:
 `   python3 --version   `
 
 Ensure that your terminal supports the UTF8 character set for proper display of status icons.
-
-You can install the dependencies via pip:
-`   pip install pyyaml rich   `
 
 
 ### Installation
@@ -157,6 +154,7 @@ Now you can run the script using the command:
 Arguments:
 
 -  'info': Show check description and sub-checks.
+-  'watch': Native watch command for ongoing monitoring.
 
 
 ### Example Output ###
@@ -244,28 +242,20 @@ In order to leverage that output, there is a custom handler defined in `host_inf
 You can review all the existing checks defined in `config/checks.yml` for more examples.
 
 
-#### Setting Up a Continuously Updating Monitor for 'hi'
-To set up a continuosly updating view of the hi output, you can set up another bash function and alias.  Add the following function to your ~/.bashrc file:
-In this case, the watch command would monitor the output of 'hi' every 2 seconds.
-```
-host_information_watch() {
-    clear
-    watch -c -n 2 "python3 ~/path/to/hi/host_information.py"
-}
-```
-Again, replace ~/path/to/hi/ with the actual path to where you cloned the repository.
+#### hi watch
+'hi' no longer uses the linux 'watch' command for continuous monitoring.
+Instead a new, native watch command is available that retains the correct
+output formatting in the terminal. 
 
-Then, add an alias to call this function:
-`alias hi_watch=host_information_watch`
+To use the watch command, all you have to do now is run one of the
+following commands:
 
-After adding these lines, save the ~/.bashrc file and apply the changes:
-`source ~/.bashrc`
+`  hi watch   `
+`  hi watch info  `
 
-Now you can run the continuously updating output from 'hi' using the command:
-`hi_watch`
+The command would monitor the output of 'hi' every 2 seconds, and update
+your terminal output accordingly.
 
-This 'watch' functionality is likely to become a native
-feature. See ROADMAP.txt for details.
 
 ### Contributing ###
 1. Fork the repository.

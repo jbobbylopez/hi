@@ -54,17 +54,6 @@ changes may already be in development progress.
 - Improved testing scope, focused on indicators and statuses
 
 #### Logical Separation of Concerns ####
-- [🚧] Remove the dependency on 'watch' command for continuous monitoring.  The
-  GNU 'watch' command that comes with most Linux distributions tends to
-  strip ANSI color codes from plain-text output.  Although the 'watch'
-  command is very preformant (it's written in C), it still has some
-  limitations.  With 'hi', because the tools is leveraging curses output
-  based on the Rich module, I need to have a bit more control of the
-  output, even when used as a continuous monitor.  And so implementing a
-  native watch functionality seems to make the most sense.
-
-  **GOAL:** Enable continously updated output / monitoring as a native part of the
-  tool, configured via yaml.
 - Externalization of hard-coded configs into config/hi.yml
 
 ## Likely Features and Improvements ##
@@ -125,3 +114,14 @@ to provide details on what the check is doing (or why it's important). These det
 need to be part of the default 'hi' tool output, but can be shown as extended information with
 a flag on the command-line, or in the HTTP server / API output.
 
+- [✅] Remove the dependency on 'watch' command for continuous monitoring.  The
+  GNU 'watch' command that comes with most Linux distributions tends to
+  strip ANSI color codes from plain-text output.  Although the 'watch'
+  command is very preformant (it's written in C), it still has some
+  limitations.  With 'hi', because the tools is leveraging curses output
+  based on the Rich module, I need to have a bit more control of the
+  output, even when used as a continuous monitor.  And so implementing a
+  native watch functionality seems to make the most sense.
+
+  **GOAL:** Enable continously updated output / monitoring as a native part of the
+  tool, configured via yaml.
