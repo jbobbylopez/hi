@@ -73,6 +73,7 @@ def get_groups_yaml(groups_yaml):
 def compile_output_messages(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
     status = ""
     check_indicators = None
+    indicators = {}
     output_messages = []
 
     # The below 'if output:' statement means that the command completed
@@ -113,9 +114,13 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     else:
         indicator = '❌'
         output = "is stopped"
+        print(f"check: {check}")
+        
         if indicators:
-            if 'negative' in indicators and 'icon' in indicators['negative']:
-                indicator = indicators['negative']['icon']
+            print(f"indicators: {indicators}")
+            indicator = indicators.get('negative', {}).get('icon', indicator)
+            #if 'negative' in indicators and 'icon' in indicators['negative']:
+            #    indicator = indicators['negative']['icon']
             if 'negative' in indicators and 'status' in indicators['negative']:
                 output = indicators['negative']['status'] 
         output_messages.append(f"[{indicator}] {check} {output}")
