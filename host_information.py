@@ -114,7 +114,6 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     else:
         indicator = '❌'
         output = "is stopped"
-        print(f"check: {check}")
         
         if indicators:
             print(f"indicators: {indicators}")
