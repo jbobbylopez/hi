@@ -242,7 +242,6 @@ def hi_watch(interval=2):
                 display_hi_watch_report()
         except KeyboardInterrupt:
             console.clear()
-            #os.system('clear')  # For Linux/OSX, use 'cls' for Windows
             console.print("\n[hi: continuous monitoring stopped.]")
         finally:
             print("\033[?25h", end='')  # Ensure the cursor is shown when exiting

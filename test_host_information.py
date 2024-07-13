@@ -17,20 +17,33 @@ def capture_stdout(monkeypatch):
     yield held_output
     sys.stdout = original_stdout
 
-def test_host_information_header_line_in_output(capsys):
-    # Now call the actual df_bargraph.display_bar_graph function
+def test_hi_config_argv_watch_info(capsys):
+    # backup original sys.argv for restoration later
+    original_argv = sys.argv.copy()
+    
+    # set argv for this test
+    sys.argv = ['watch', 'info']
+
+    try:
+        host_information.display_checks()
+        captured = capsys.readouterr()
+        output = captured.out
+        assert "Host Information:" in output
+        print("Test passed: 'Host Information' in output")
+
+    finally:
+        sys.argv = original_argv
+
+def test_hi_output_header_line(capsys):
     host_information.display_checks()
 
-    # Capture the output after calling df_bargraph.display_bar_graph
     captured = capsys.readouterr()
     output = captured.out
     
-    # Assert that "Filesystem" is in the output
     assert "Host Information:" in output
-    print("Test passed: 'Filesystem' found in the output.")
+    print("Test passed: 'Host Information' found in the output.")
 
-def test_host_information_get_ip_address(capsys):
-    # Now call the actual df_bargraph.display_bar_graph function
+def test_hi_output_get_ip_address(capsys):
     print(host_information.get_ip_address())
 
     # Capture the output after calling df_bargraph.display_bar_graph
@@ -41,42 +54,34 @@ def test_host_information_get_ip_address(capsys):
     ip_pattern = r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b'
     assert re.search(ip_pattern, output), "No IP address found in the output"
 
-    print("Test passed: 'ip_address' found in the output.")
+    print("Test passed: 'ip_address' confirmed.")
 
-def test_df_bargraph_output(capsys):
+def test_df_bargraph_output_display_bar_graph(capsys):
     print("df_bargraph assertions")
     
-    # Now call the actual df_bargraph.display_bar_graph function
     df_bargraph.display_bar_graph()
 
-    # Capture the output after calling df_bargraph.display_bar_graph
     captured = capsys.readouterr()
     output = captured.out
     print("Captured Output: ", output)
     
-    # Assert that "Filesystem" is in the output
     assert "Filesystem" in output
     assert "root (/)" in output
     assert "Used" in output
     assert "Total" in output
     assert "Free" in output
     assert "% Used" in output
-    print("Test passed: 'Filesystem' found in the output.")
+    print("Test passed: Filesystem bargraph elements confirmed.")
 
-def test_check_ubuntu_eol_line_in_output(capsys):
-    print("JBL starting test..")
-    
-    # Now call the actual df_bargraph.display_bar_graph function
+def test_check_ubuntu_eol_output_main(capsys):
     check_ubuntu_eol.main()
 
-    # Capture the output after calling df_bargraph.display_bar_graph
     captured = capsys.readouterr()
     output = captured.out
     print("Captured Output: ", output)
     
-    # Assert that "Filesystem" is in the output
     assert "Operating System:" in output
-    print("Test passed: 'Filesystem' found in the output.")
+    print("pass: check_ubuntu_eol.mail() | output confirmed.")
 
 if __name__ == '__main__':
     pytest.main()
