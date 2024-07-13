@@ -23,12 +23,14 @@ def test_hi_config_argv_watch_info_config(capsys):
     
     # set argv for this test
     sys.argv = ['watch', 'info', 'config', 'config/example.yml']
+    pattern = r"\[\❌\]|\[\✅\]"
     
     try:
         host_information.display_checks()
         captured = capsys.readouterr()
         output = captured.out
         assert "Host Information:" in output
+        assert re.search(pattern, output), "No standard check indicators detected"
         print("Test passed: 'Host Information' in output")
 
     finally:
@@ -37,6 +39,7 @@ def test_hi_config_argv_watch_info_config(capsys):
 def test_hi_config_argv_config(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
+    pattern = r"\[\❌\]|\[\✅\]"
     
     # set argv for this test
     sys.argv = ['config', 'config/example.yml']
@@ -46,6 +49,7 @@ def test_hi_config_argv_config(capsys):
         captured = capsys.readouterr()
         output = captured.out
         assert "Host Information:" in output
+        assert re.search(pattern, output), "No standard check indicators detected"
         print("Test passed: 'Host Information' in output")
 
     finally:
@@ -54,6 +58,7 @@ def test_hi_config_argv_config(capsys):
 def test_hi_config_argv_info(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
+    pattern = r"\[\❌\]|\[\✅\]"
     
     # set argv for this test
     sys.argv = ['info']
@@ -63,6 +68,7 @@ def test_hi_config_argv_info(capsys):
         captured = capsys.readouterr()
         output = captured.out
         assert "Host Information:" in output
+        assert re.search(pattern, output), "No standard check indicators detected"
         print("pass: host_information.main() | output confirmed.")
 
     finally:
@@ -71,6 +77,7 @@ def test_hi_config_argv_info(capsys):
 def test_hi_config_argv_watch_info(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
+    pattern = r"\[\❌\]|\[\✅\]"
     
     # set argv for this test
     sys.argv = ['watch', 'info']
@@ -80,6 +87,7 @@ def test_hi_config_argv_watch_info(capsys):
         captured = capsys.readouterr()
         output = captured.out
         assert "Host Information:" in output
+        assert re.search(pattern, output), "No standard check indicators detected"
         print("pass: host_information.main() | output confirmed.")
 
     finally:
@@ -108,6 +116,22 @@ def test_hi_output_get_ip_address(capsys):
     ip_pattern = r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b'
     assert re.search(ip_pattern, output), "No IP address found in the output"
     print("pass: host_information.get_ip_address() | output confirmed.")
+
+def test_hi_df_bargraph_combind_output(capsys):
+    pattern = r"\[\❌\]|\[\✅\]"
+    host_information.display_checks()
+    df_bargraph.display_bar_graph()
+    captured = capsys.readouterr()
+    output = captured.out
+    print("Captured Output: ", output)
+    assert "Filesystem" in output
+    assert "root (/)" in output
+    assert "Used" in output
+    assert "Total" in output
+    assert "Free" in output
+    assert "% Used" in output
+    print("Test passed: Filesystem bargraph elements confirmed.")
+
 
 def test_df_bargraph_output_display_bar_graph(capsys):
     print("df_bargraph assertions")
