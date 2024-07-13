@@ -14,18 +14,20 @@ from rich.table import Table
 from rich.box import MINIMAL
 from rich.align import Align
 
+def get_script_dir():
+    ''' Returns the directory where the script is running from '''
+    return os.path.dirname(os.path.abspath(__file__))
+
+# Read in 'config/config.ini'
+script_dir = get_script_dir()
 config = configparser.ConfigParser()
-config.read('config/config.ini')
+config.read(os.path.join(script_dir, 'config/config.ini'))
 
 def center_text(text):
     """
     Center the given text based on the terminal width using Rich.
     """
     return Align.center(text)
-
-def get_script_dir():
-    ''' Returns the directory where the script is running from '''
-    return os.path.dirname(os.path.abspath(__file__))
 
 def get_ip_address():
     result = {
