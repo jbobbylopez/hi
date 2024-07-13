@@ -187,10 +187,13 @@ def check_engine_yaml(check_type, verbose=False):
     group_output = []
     sub_checks = None
     script_dir = get_script_dir()
+
+    # read checks_file specified in config.ini
     ini_checks_file = config.get('Paths', 'checks_file')
 
-    # check for user-specified checks
+    # read user-specified checks_file
     cli_checks_file = check_argv_config_yaml_file()
+
     if cli_checks_file:
         checks_yaml_file = cli_checks_file
     else:
@@ -211,6 +214,7 @@ def check_engine_yaml(check_type, verbose=False):
             group_output.append(compile_output_messages(check, output, check_type, info, indicators, sub_checks))
 
     return group_output
+
 
 def enable_check_info():
     check_info = 0
