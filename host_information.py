@@ -82,7 +82,7 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
 
     # The below 'if output:' statement means that the command completed
     # successfully, and 'output' contains any data returned by the executed
-    # command.  'check' contains the name of the check in config/check.yml.
+    # command.  'check' contains the name of the check in config/checks.yml.
     if cmd_output:
 
         if 'data backup' in check.lower():

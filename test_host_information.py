@@ -17,6 +17,23 @@ def capture_stdout(monkeypatch):
     yield held_output
     sys.stdout = original_stdout
 
+def test_hi_config_argv_watch_info_config(capsys):
+    # backup original sys.argv for restoration later
+    original_argv = sys.argv.copy()
+    
+    # set argv for this test
+    sys.argv = ['watch', 'info', 'config', 'config/example.yml']
+    
+    try:
+        host_information.display_checks()
+        captured = capsys.readouterr()
+        output = captured.out
+        assert "Host Information:" in output
+        print("Test passed: 'Host Information' in output")
+
+    finally:
+        sys.argv = original_argv
+
 def test_hi_config_argv_config(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
@@ -34,6 +51,23 @@ def test_hi_config_argv_config(capsys):
     finally:
         sys.argv = original_argv
     
+def test_hi_config_argv_info(capsys):
+    # backup original sys.argv for restoration later
+    original_argv = sys.argv.copy()
+    
+    # set argv for this test
+    sys.argv = ['info']
+
+    try:
+        host_information.display_checks()
+        captured = capsys.readouterr()
+        output = captured.out
+        assert "Host Information:" in output
+        print("pass: host_information.main() | output confirmed.")
+
+    finally:
+        sys.argv = original_argv
+
 def test_hi_config_argv_watch_info(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
@@ -51,14 +85,17 @@ def test_hi_config_argv_watch_info(capsys):
     finally:
         sys.argv = original_argv
 
-def test_hi_output_header_line(capsys):
+def test_hi_config_argv_defaults(capsys):
     host_information.display_checks()
+    pattern = r"\[\❌\]|\[\✅\]"
 
     captured = capsys.readouterr()
     output = captured.out
     
     assert "Host Information:" in output
-    print("Test passed: 'Host Information' found in the output.")
+    assert re.search(pattern, output), "No standard check indicators detected"
+    print("pass: host_information.main() | output confirmed.")
+    
 
 def test_hi_output_get_ip_address(capsys):
     print(host_information.get_ip_address())
@@ -70,8 +107,7 @@ def test_hi_output_get_ip_address(capsys):
     
     ip_pattern = r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b'
     assert re.search(ip_pattern, output), "No IP address found in the output"
-
-    print("Test passed: 'ip_address' confirmed.")
+    print("pass: host_information.get_ip_address() | output confirmed.")
 
 def test_df_bargraph_output_display_bar_graph(capsys):
     print("df_bargraph assertions")
