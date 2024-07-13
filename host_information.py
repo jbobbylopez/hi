@@ -5,6 +5,7 @@ import socket
 import re
 import os
 import yaml
+import configparser
 import check_ubuntu_eol
 import df_bargraph
 from datetime import datetime, timedelta
@@ -12,6 +13,9 @@ from rich.console import Console
 from rich.table import Table
 from rich.box import MINIMAL
 from rich.align import Align
+
+config = configparser.ConfigParser()
+config.read('config/config.ini')
 
 def center_text(text):
     """
@@ -114,7 +118,7 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     else:
         indicator = '❌'
         output = "is stopped"
-        
+
         if indicators:
             print(f"indicators: {indicators}")
             indicator = indicators.get('negative', {}).get('icon', indicator)
@@ -159,13 +163,44 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     final_output = "\n".join(output_messages)
     return final_output
 
-def check_engine_yaml(check_type, verbose=False):
-    script_dir = get_script_dir()
-    checks = get_checks_yaml(os.path.join(script_dir, "config/checks.yml"))
-    checks = checks['checks']
 
+def check_argv_config_yaml_file():
+    yml_file_path = None
+    has_yml_file = None
+    has_config = 'config' in sys.argv
+
+    # Check each argument for a .yml file extension
+    for arg in sys.argv:
+        if arg.endswith('.yml'):
+            yml_file_path = arg
+            has_yml_file = 1
+            break  # Stop at the first .yml file found
+
+    if has_config and not has_yml_file:
+        raise ValueError("No '*.yml' file path found in arguments.")
+    
+    if has_config and has_yml_file:
+        return yml_file_path
+
+
+def check_engine_yaml(check_type, verbose=False):
     group_output = []
     sub_checks = None
+    script_dir = get_script_dir()
+    ini_checks_file = config.get('Paths', 'checks_file')
+
+    # check for user-specified checks
+    cli_checks_file = check_argv_config_yaml_file()
+    if cli_checks_file:
+        checks_yaml_file = cli_checks_file
+    else:
+        checks_yaml_file = ini_checks_file
+
+    try:
+        checks = get_checks_yaml(os.path.join(script_dir, checks_yaml_file))
+        checks = checks['checks']
+    except Exception as e:
+        return str(e)
 
     for check, attribs in checks.items():
         if attribs['group'] == check_type:
@@ -177,13 +212,22 @@ def check_engine_yaml(check_type, verbose=False):
 
     return group_output
 
+def enable_check_info():
+    check_info = 0
+    check_info = 1 in sys.argv or None
+    return check_info
+
+
 def display_checks():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
     """
     script_dir = get_script_dir()
     groups = get_groups_yaml(os.path.join(script_dir, "config/groups.yml"))['groups']
-    verbose = 'info' in sys.argv
+    if enable_check_info:
+        info = 'info' in sys.argv 
+    else:
+        info = None
 
     # Get and print the local IP address
     local_ip_result = get_ip_address()
@@ -193,7 +237,7 @@ def display_checks():
 
     console.print(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
 
-    group_statuses = {group: check_engine_yaml(group, verbose) for group in groups}
+    group_statuses = {group: check_engine_yaml(group, info) for group in groups}
 
     # Loop over every two groups and create tables
     for i in range(0, len(groups), 2):

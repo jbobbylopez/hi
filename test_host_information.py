@@ -17,6 +17,23 @@ def capture_stdout(monkeypatch):
     yield held_output
     sys.stdout = original_stdout
 
+def test_hi_config_argv_config(capsys):
+    # backup original sys.argv for restoration later
+    original_argv = sys.argv.copy()
+    
+    # set argv for this test
+    sys.argv = ['config', 'config/example.yml']
+    
+    try:
+        host_information.display_checks()
+        captured = capsys.readouterr()
+        output = captured.out
+        assert "Host Information:" in output
+        print("Test passed: 'Host Information' in output")
+
+    finally:
+        sys.argv = original_argv
+    
 def test_hi_config_argv_watch_info(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
@@ -29,7 +46,7 @@ def test_hi_config_argv_watch_info(capsys):
         captured = capsys.readouterr()
         output = captured.out
         assert "Host Information:" in output
-        print("Test passed: 'Host Information' in output")
+        print("pass: host_information.main() | output confirmed.")
 
     finally:
         sys.argv = original_argv
