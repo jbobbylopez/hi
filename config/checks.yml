@@ -67,6 +67,7 @@ checks:
       positive:
         icon: 📂
       negative:
+        icon: 📂
     command: |
       ps -ef | grep [d]ropbox
     info: Monitoring that dropbox process is running
