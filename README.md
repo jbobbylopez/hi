@@ -150,30 +150,30 @@ sub-checks defined for checking Thunderbird's 'Memory Usage' and 'Version'
 information.
 
 ```
-  Thunderbird:                                                                                                                                   │                                                                         │ [❌] Midnight Commander is stopped                                     
-     info: My favorite mail client                                                                                                                │                                                                         │ [✅] tmux is running                                                   
-     group: Communications                                                                                                                        │                                                                         ╵                                                                        
-     indicators:                                                                                                                                  │Operating System: Ubuntu 22.04 | End of Life: 2027-04-01 (2 years, 8 months, 3 weeks, and 4 days remaining)
-       positive:                                                                                                                                  │Filesystem                    Used            Total           Free            Bar                                               % Used
-         status:                                                                                                                                  │root (/)                      364.8 GB        478.9 GB        89.7 GB         [====================================---------]>   80.3%
-         icon: 📧                                                                                                                                 │/media/jbl/vdc2022nas         2.0 TB          3.6 TB          1.4 TB          [==========================-------------------]>   59.9%
-       negative:                                                                                                                                  │/media/jbl/jbl-backup-sg1tb   174.9 GB        915.8 GB        694.3 GB        [=========------------------------------------]>   20.1%
-         status:                                                                                                                                  │
-         icon: 📧                                                                                                                                 │VPN: Connected to Canada - Toronto
-     command: |                                                                                                                                   │jbl@vdc 2024-Jul-09 (Tuesday) 03:25:23 AM (dev-subchecks) 
-       ps -ef | grep -E "[t]hunderbird"                                                                                                           │[~/scripts/hi] 
-     sub_checks:                                                                                                                                  │➤ pytest -v test_host_information.py 
-       Memory Usage:                                                                                                                              │============================================================== test session starts ===============================================================
-         command: |                                                                                                                               │platform linux -- Python 3.10.12, pytest-8.2.2, pluggy-1.5.0 -- /usr/bin/python3
-           ps --no-headers -o rss -C thunderbird | awk '{sum+=$1} END {printf "%.2f MB (%.2f GB)\n", sum/1024, sum/1048576}'                      │cachedir: .pytest_cache
-         indicators:                                                                                                                              │rootdir: /home/jbl/Sources/hi
-           positive:                                                                                                                              │plugins: anyio-4.2.0
-               icon: 💾                                                                                                                           │collected 4 items                                                                                                                                
-           negative:                                                                                                                              │
-               icon: 💾                                                                                                                           │test_host_information.py::test_host_information_header_line_in_output PASSED                                                               [ 25%]
-       Version:                                                                                                                                   │test_host_information.py::test_host_information_get_ip_address PASSED                                                                      [ 50%]
-         command: |                                                                                                                               │test_host_information.py::test_df_bargraph_output PASSED                                                                                   [ 75%]
-           thunderbird --version
+  Thunderbird:  
+    info: My favorite mail client
+    group: Communications            
+    indicators:                                                                   
+      positive:                     
+        status:    
+        icon: 📧
+      negative:                         
+        status:
+        icon: 📧
+    command: | 
+      ps -ef | grep -E "[t]hunderbird"
+    sub_checks:              
+      Memory Usage:                     
+        command: |
+          ps --no-headers -o rss -C thunderbird | awk '{sum+=$1} END {printf "%.2f MB (%.2f GB)\n", sum/1024, sum/1048576}'                                         
+        indicators:  
+          positive:
+              icon: 💾                                                            
+          negative:
+              icon: 💾    
+      Version:    
+        command: |                                                                                                                                                  
+          thunderbird --version
 ```
 ### Custom Indicators
 
