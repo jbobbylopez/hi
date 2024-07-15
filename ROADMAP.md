@@ -48,13 +48,22 @@ to be avoided, and might be fairly simple to implement. These types of
 changes may already be in development progress.
 
 #### Design Improvements ####
-- Code restructuring / refactoring to increase modularity / maintainability
+- Code imporovements - refactoring to increase modularity and maintainability
+    - compile_output_messages()
+        - Break this out into multiple functions
+        - Default icons ❌ and ✅ shouldn't be used in the code.  Should be
+          pulled from config.ini
+        - Backup related concerns should move to separate functions
+        - output_messages should probably become multiple dicts, one per
+          group.  In this way each group's messages can be populated
+          specifically into it's own output table.
+        - Indicator logic can likely be broken out
 
 #### Testing ####
 - Improved testing scope, focused on indicators and statuses
 
 #### Logical Separation of Concerns ####
-- Externalization of hard-coded configs into config/hi.yml
+- Externalization of hard-coded configs into config/config.ini
 
 ## Likely Features and Improvements ##
 Not guaranteed, but likely to be implemented if time permits.
