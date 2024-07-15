@@ -65,7 +65,63 @@ Ensure that your terminal supports the UTF8 character set for proper display of 
     
 
 ### Configuration
-Customize the services and checks in the `config/checks.yml` file located in the repository. This configuration file allows you to define any number of checks to monitor services or functionalities available via the command line.
+There are currently three (3) configuration files that 'hi' depends on.  They are as
+follows:
+- config/config.ini
+- config/groups.yml
+- config/checks.yml
+
+#### config/config.ini ####
+This file is the main configuration file that tells 'hi' what files it needs and options it should enable.
+
+For example, you can use the 'checks_file' to specify a custom location of
+the specific checks.yml formatted file you would like to use.
+
+Also, you can configure table output options to customize how your reports
+displayed.
+
+##### checks_file #####
+The 'checks_file' setting tells *hi* where YOUR custom 'checks.yml' file is located.  The checks file can be named anything,
+as long as it is a properly formatted YAML file.  It should look something like the checks.yml or example.yml files that comes
+with this tool.
+
+config.ini example:
+```
+[Paths]
+checks_file = config/checks.yml
+[Tables]
+number_of_columns = 2 
+
+```
+
+#### config/groups.yml ####
+*hi* "status groups" typically referred to simply as "groups" can be customized in the `  config/groups.yml  ` file, and only those system checks
+configured with those specific groups defined will be reported.
+
+The following is how the groups.yml file should be configured.  You can
+either keep these same group names, or modify and rename them to whatever
+you like.
+
+` config/groups.yml ` example:
+```
+groups:
+  - Security
+  - Mount
+  - Data
+  - Communications
+  - Media
+  - Backup
+  - Virtualization
+  - Tools
+```
+
+#### config/checks.yml ####
+This is where the magic happens.  The `  config/checks.yml  ` file is where
+your system status checks are defined.  This file can be renamed to
+anything you want, but the new name or location will need to be updated in
+your `config.ini` file for it to be used.
+
+This configuration file allows you to define any number of system status checks to monitor services or functionalities available via the command line.
 
 Example configuration reference:
 ```
@@ -77,7 +133,12 @@ checks:
       ps -ef | grep -E '([q]bittorrent)'
   ...
 ```
-### Sub-Checks
+
+Several examples of various system status checks are available for review
+or reuse in the ` config/checks.yml ` file that comes with this tool.
+
+
+### sub-checks
 You can now define multiple sub-checks using the same check declaration pattern.
 
 Here's an example of how sub-checks are configured.  We will use the
