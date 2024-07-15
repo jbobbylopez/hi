@@ -66,15 +66,10 @@ def check_process(process, command):
     except Exception as e:
         return str(e)
 
-def get_checks_yaml(checks_yaml):
-    with open(checks_yaml, 'r') as file:
-        checks = yaml.safe_load(file)
-    return checks
-
-def get_groups_yaml(groups_yaml):
-    with open(groups_yaml, 'r') as file:
-        groups = yaml.safe_load(file)
-    return groups
+def get_config_yaml(config_yaml):
+    with open(config_yaml, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
 
 def compile_output_messages(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
     status = ""
@@ -207,7 +202,7 @@ def check_engine_yaml(check_type, verbose=False):
         checks_yaml_file = ini_checks_file
 
     try:
-        checks = get_checks_yaml(os.path.join(script_dir, checks_yaml_file))
+        checks = get_config_yaml(os.path.join(script_dir, checks_yaml_file))
         checks = checks['checks']
     except Exception as e:
         return str(e)
@@ -228,44 +223,42 @@ def enable_check_info():
     check_info = 1 in sys.argv or None
     return check_info
 
-
 def display_checks():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
     """
+    local_ip_result = get_ip_address()                                                                                                                                                                                         
+    hostname_result = get_hostname_address()                                                                                                                                                                                   
     script_dir = get_script_dir()
-    groups = get_groups_yaml(os.path.join(script_dir, "config/groups.yml"))['groups']
+    groups = get_config_yaml(os.path.join(script_dir, "config/groups.yml"))['groups']
+    
     if enable_check_info:
-        info = 'info' in sys.argv 
+        info = 'info' in sys.argv
     else:
         info = None
 
-    # Get and print the local IP address
-    local_ip_result = get_ip_address()
-
-    # Get and print the hostname and IP address
-    hostname_result = get_hostname_address()
-
+    # Print hi tool display header
     console.print(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
 
+    # Get all status messages for each target group in 'config/groups.yaml'
     group_statuses = {group: check_engine_yaml(group, info) for group in groups}
-
-    # Loop over every two groups and create tables
-    for i in range(0, len(groups), 2):
+    
+    # Rich table output
+    # read number_of_columns per table specified in config.ini
+    num_columns = int(config.get('Tables', 'number_of_columns'))
+    for i in range(0, len(groups), num_columns):
         table = Table(show_header=True, header_style="bold magenta", expand=True, box=MINIMAL)
-        group1 = groups[i]
-        table.add_column(group1, style="green3", justify="left", no_wrap=True, width=40)
-        group2 = groups[i + 1] if i + 1 < len(groups) else None
-        if group2:
-            table.add_column(group2, style="green3", justify="left", no_wrap=True, width=40)
 
-        max_length = max(len(group_statuses[group1]), len(group_statuses[group2]) if group2 else 0)
+        current_groups = groups[i:i + num_columns]
+        for group in current_groups:
+            table.add_column(group, style="green3", justify="left", no_wrap=True, width=40)
+
+        max_length = max(len(group_statuses[group]) for group in current_groups)
 
         for j in range(max_length):
-            col1 = group_statuses[group1][j] if j < len(group_statuses[group1]) else ""
-            col2 = group_statuses[group2][j] if group2 and j < len(group_statuses[group2]) else ""
-            table.add_row(col1, col2)
-
+            row = [group_statuses[group][j] if j < len(group_statuses[group]) else "" for group in current_groups]
+            table.add_row(*row)
+        
         console.print(table)
 
 def display_hi_report():
