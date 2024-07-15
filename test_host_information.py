@@ -2,7 +2,10 @@ import pytest
 import subprocess
 import sys
 import os
+# Make sure script can find and import modules from directories relative to the script’s location
+# ensures that the directory containing this script is searched first when we import modules.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
+
 import io
 import re
 import host_information
@@ -22,7 +25,7 @@ def test_hi_config_argv_watch_info_config(capsys):
     original_argv = sys.argv.copy()
     
     # set argv for this test
-    sys.argv = ['watch', 'info', 'config', 'config/example.yml']
+    sys.argv = ['watch', 'info', 'config', 'example.yml']
     pattern = r"\[\❌\]|\[\✅\]"
     
     try:
@@ -42,7 +45,7 @@ def test_hi_config_argv_config(capsys):
     pattern = r"\[\❌\]|\[\✅\]"
     
     # set argv for this test
-    sys.argv = ['config', 'config/example.yml']
+    sys.argv = ['config', 'example.yml']
     
     try:
         host_information.display_checks()
