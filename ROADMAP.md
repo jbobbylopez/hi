@@ -59,9 +59,10 @@ changes may already be in development progress.
           specifically into it's own output table.
         - Indicator logic can likely be broken out
     - `display_checks()`
-        - Break this out into multiple functions
-        - Handle table and column creation more dynamically, based on
+        - [✅] Break this out into multiple functions
+        - [✅] Handle table and column creation more dynamically, based on
           config.ini values for number of columns, etc.
+    - API friendly data structures
         - Improve the structure of messages so this data can be exposed in
           an API for use in another view, like an HTML report.
     - Do something a bit more constructive with the hi header ("Host
