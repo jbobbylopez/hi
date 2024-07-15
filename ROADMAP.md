@@ -49,7 +49,7 @@ changes may already be in development progress.
 
 #### Design Improvements ####
 - Code imporovements - refactoring to increase modularity and maintainability
-    - compile_output_messages()
+    - `compile_output_messages()`
         - Break this out into multiple functions
         - Default icons ❌ and ✅ shouldn't be used in the code.  Should be
           pulled from config.ini
@@ -58,6 +58,14 @@ changes may already be in development progress.
           group.  In this way each group's messages can be populated
           specifically into it's own output table.
         - Indicator logic can likely be broken out
+    - `display_checks()`
+        - Break this out into multiple functions
+        - Handle table and column creation more dynamically, based on
+          config.ini values for number of columns, etc.
+        - Improve the structure of messages so this data can be exposed in
+          an API for use in another view, like an HTML report.
+    - Do something a bit more constructive with the hi header ("Host
+      Information:") line
 
 #### Testing ####
 - Improved testing scope, focused on indicators and statuses
