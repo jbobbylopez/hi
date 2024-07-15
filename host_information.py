@@ -182,7 +182,7 @@ def check_argv_config_yaml_file():
         raise ValueError("No '*.yml' file path found in arguments.")
     
     if has_config and has_yml_file:
-        return yml_file_path
+        return "config/" + yml_file_path
 
 
 def check_engine_yaml(check_type, verbose=False):
@@ -191,6 +191,9 @@ def check_engine_yaml(check_type, verbose=False):
     script_dir = get_script_dir()
 
     # read checks_file specified in config.ini
+    # This is useful for quick testing other checks.yml files with
+    # different names.
+    # E.g.:  hi config config/my_custom_checks.yml
     ini_checks_file = config.get('Paths', 'checks_file')
 
     # read user-specified checks_file

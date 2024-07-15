@@ -211,11 +211,16 @@ After adding these lines, save the ~/.bashrc file and apply the changes:
 Now you can run the script using the command:
 `hi`
 
-#### Options and Arguments
+#### Options and Arguments - the *hi* cli
+You typically just want to run ` hi `, but there are a few options and
+arguments to the tool you might want to be aware of.
+
 Arguments:
 
 -  'info': Show check description and sub-checks.
 -  'watch': Native watch command for ongoing monitoring.
+-  'config': Specify another status checks file that resides in 'config/'.
+            E.g. `  hi config my-checks.yml  ` 
 
 
 ### Example Output ###
