@@ -31,12 +31,14 @@ providing clean, clear system checks and reporting information.  This tool
 should not evolve into an over-complicated mess.
 
 Simple Progress Tracking:
-- 🛠️: In Progress
+- 🚧: In Progress
 - ✅: Done  / Implemented
 
 #### Status Legend ####
-✅ - Completed
+👀 - Todo (What I'm looking at doing next)
 🚧 - In Progress
+✅ - Completed
+⬇️  - De-prioritized
 
 ----
 # ROADMAP MILESTONES #
@@ -50,13 +52,10 @@ changes may already be in development progress.
 #### Design Improvements ####
 - Code imporovements - refactoring to increase modularity and maintainability
     - `compile_output_messages()`
-        - Break this out into multiple functions
-        - Default icons ❌ and ✅ shouldn't be used in the code.  Should be
+        - [✅] Break this out into multiple functions
+        - [👀] Default icons ❌ and ✅ shouldn't be used in the code.  Should be
           pulled from config.ini
-        - Backup related concerns should move to separate functions
-        - output_messages should probably become multiple dicts, one per
-          group.  In this way each group's messages can be populated
-          specifically into it's own output table.
+        - [👀] Backup related concerns should move to separate functions
         - Indicator logic can likely be broken out
     - `display_checks()`
         - [✅] Break this out into multiple functions
@@ -81,6 +80,10 @@ Not guaranteed, but likely to be implemented if time permits.
 - Breaking checks.yml out into multiple files. I imagine that if I'm going to implement
 'Dynamic Groups', then I might as well group the checks with filenames representing those groups. 
 It would also make managing checks an easier task.
+- `compile_output_messages()`
+    - `output_messages` should probably become multiple dicts, one per
+      group.  In this way each group's messages can be populated
+      specifically into it's own output table.
 
 
 ## Backlog Ideas and Improvements ##
