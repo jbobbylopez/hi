@@ -43,6 +43,7 @@ Simple Progress Tracking:
 ----
 # ROADMAP MILESTONES #
 
+
 ## Target Features and Improvements ##
 The features and fixes defined in this section are almost positively going
 to be implemented.  These are features that seem to provide too much value
@@ -51,6 +52,7 @@ changes may already be in development progress.
 
 #### Design Improvements ####
 - Code imporovements - refactoring to increase modularity and maintainability
+
     - `compile_output_messages()`
         - [✅] Break this out into multiple functions
         - [👀] Default icons ❌ and ✅ shouldn't be used in the code.  Should be
@@ -67,11 +69,18 @@ changes may already be in development progress.
     - Do something a bit more constructive with the hi header ("Host
       Information:") line
 
+- Aesthetic Improvements
+
+   - [🚧] Enable customization of output (colors, formatting of tables).  This
+      will help prevent the tool's output from becoming too mundane, and
+      enable users to refine the tool to show exactly what they want to see.
 #### Testing ####
 - Improved testing scope, focused on indicators and statuses
 
 #### Logical Separation of Concerns ####
 - Externalization of hard-coded configs into config/config.ini
+
+
 
 ## Likely Features and Improvements ##
 Not guaranteed, but likely to be implemented if time permits.
@@ -84,6 +93,7 @@ It would also make managing checks an easier task.
     - `output_messages` should probably become multiple dicts, one per
       group.  In this way each group's messages can be populated
       specifically into it's own output table.
+
 
 
 ## Backlog Ideas and Improvements ##
