@@ -72,6 +72,50 @@ def get_config_yaml(config_yaml):
         config = yaml.safe_load(file)
     return config
 
+def check_record_handler(check, output, indicators):
+    check_record = {}
+    check_record['name'] = check
+    check_record['icon'] = '✅' # Default positive indicator
+    check_record['stat_date_str'] = None
+    threshold_days = 7  # Assuming 7 days threshold for date_check
+
+    if 'data backup' in check.lower():
+        check_record['stat_date_str'] = output.strip().split(' ')[1]
+        check_record['stat_date'] = datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d')
+        if datetime.now() - check_record['stat_date'] > timedelta(days=threshold_days):
+            check_record['icon'] = '❌'
+            check_record['status'] = f"Last modified date {check_record['stat_date_str']} is older than {threshold_days} days"
+        else:
+            check_record['icon'] = '✅'
+            check_record['status'] = f"Last modified date {check_record['stat_date_str']} is within {threshold_days} days"
+
+    elif 'expressvpn' in check.lower():
+        if re.search("Connected", output.strip()):
+            check_record['icon'] = '✅'
+            check_record['status'] = f"{check} Status: {output.strip()}"
+        else:
+            check_record['icon'] = '❌'
+            check_record['status'] = f"{check} Status: {output.strip()}"
+
+    else:
+        if indicators:
+            if 'positive' in indicators and 'icon' in indicators['positive']:
+                check_record['icon'] = indicators['positive']['icon']
+            if 'positive' in indicators and 'status' in indicators['positive']:
+                check_record['status'] = indicators['positive']['status']
+        try:
+            # this is not expected to work if indicators is not set - only
+            # to trigger an exception
+            check_record['icon'] = indicators['positive']['icon']
+            check_record['status'] = indicators['positive']['status'].strip()
+        except:
+            # Exception is caught and dealth with gracefully when
+            # indicators are not configured correctly.
+            check_record['status'] = "is running" 
+
+    return check_record
+
+
 def compile_output_messages(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
     status = ""
     check_indicators = None
@@ -81,36 +125,8 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     # successfully, and 'output' contains any data returned by the executed
     # command.  'check' contains the name of the check in config/checks.yml.
     if cmd_output:
-
-        if 'data backup' in check.lower():
-            # This little bit of date calculation for the backup
-            # notification likely needs to be moved or handled differently.
-            # Separate function for sure.
-            backup_date_str = cmd_output.strip().split(' ')[1]
-            backup_date = datetime.strptime(backup_date_str, '%Y-%m-%d')
-            threshold_days = 7  # Assuming 7 days threshold for date_check
-            if datetime.now() - backup_date > timedelta(days=threshold_days):
-                output_messages.append(f"[❌] {check}: Last modified date {backup_date_str} is older than {threshold_days} days")
-            else:
-                output_messages.append(f"[✅] {check}: Last modified date {backup_date_str} is within {threshold_days} days")
-        elif 'expressvpn' in check.lower():
-            if re.search("Connected", cmd_output.strip()):
-                output_messages.append(f"[✅] {check} Status: {cmd_output.strip()}")
-            else:
-                output_messages.append(f"[❌] {check} Status: {cmd_output.strip()}")
-        else:
-            indicator = '✅'
-            if indicators:
-                if 'positive' in indicators and 'icon' in indicators['positive']:
-                    indicator = indicators['positive']['icon']
-                if 'positive' in indicators and 'status' in indicators['positive']:
-                    output = indicators['positive']['status']
-            try:
-                output = indicators['positive']['status'].strip()
-                indicator = indicators['positive']['icon']
-            except:
-                output = "is running" 
-            output_messages.append(f"[{indicator}] {check} {output}")
+        check_record = check_record_handler(check, cmd_output, indicators)
+        output_messages.append(f"[{check_record['icon']}] {check}: {check_record['status']}")
 
     else:
         indicator = '❌'
