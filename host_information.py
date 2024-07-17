@@ -13,6 +13,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.box import MINIMAL
 from rich.align import Align
+from rich.text import Text
 
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
@@ -230,11 +231,13 @@ def display_checks():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
     """
-    local_ip_result = get_ip_address()                                                                                                                                                                                         
-    hostname_result = get_hostname_address()                                                                                                                                                                                   
+
+    colors = {}
+    local_ip_result = get_ip_address()
+    hostname_result = get_hostname_address()
     script_dir = get_script_dir()
     groups = get_config_yaml(os.path.join(script_dir, "config/groups.yml"))['groups']
-    
+
     if enable_check_info:
         info = 'info' in sys.argv
     else:
@@ -245,23 +248,42 @@ def display_checks():
 
     # Get all status messages for each target group in 'config/groups.yaml'
     group_statuses = {group: check_engine_yaml(group, info) for group in groups}
-    
+
     # Rich table output
     # read number_of_columns per table specified in config.ini
     num_columns = int(config.get('Tables', 'number_of_columns'))
+    colors['header_style'] = "" if config.get('Tables', 'header_style') in [None, "None"] else config.get('Tables', 'header_style')
+    colors['border_style'] = "" if config.get('Tables', 'border_style') in [None, "None"] else config.get('Tables', 'border_style')
+    colors['background_style'] = "" if config.get('Tables', 'background_style') in [None, "None"] else config.get('Tables', 'background_style')
+    colors['column_style'] = "" if config.get('Tables', 'column_style') in [None, "None"] else config.get('Tables', 'column_style')
+    colors['check_background_style'] = "" if config.get('Tables', 'check_background_style') in [None, "None"] else config.get('Tables', 'check_background_style')
+
+    # Generate the tables
     for i in range(0, len(groups), num_columns):
-        table = Table(show_header=True, header_style="bold magenta", expand=True, box=MINIMAL)
+        table = Table(
+            show_header=True, 
+            header_style=colors["header_style"],
+            expand=True, 
+            box=MINIMAL,
+            border_style=colors["border_style"],
+            style=colors["background_style"]
+        )
 
         current_groups = groups[i:i + num_columns]
         for group in current_groups:
-            table.add_column(group, style="green3", justify="left", no_wrap=True, width=40)
+            table.add_column(group, style=colors["column_style"], justify="left", no_wrap=True, width=40)
 
         max_length = max(len(group_statuses[group]) for group in current_groups)
 
         for j in range(max_length):
-            row = [group_statuses[group][j] if j < len(group_statuses[group]) else "" for group in current_groups]
+            row = [
+                Text(group_statuses[group][j], style=colors['check_background_style']) 
+                if j < len(group_statuses[group]) 
+                else ""
+                for group in current_groups
+            ]
             table.add_row(*row)
-        
+
         console.print(table)
 
 def display_hi_report():
