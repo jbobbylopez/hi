@@ -30,15 +30,11 @@ remains the primary goal.
 providing clean, clear system checks and reporting information.  This tool
 should not evolve into an over-complicated mess.
 
-Simple Progress Tracking:
-- 🚧: In Progress
-- ✅: Done  / Implemented
-
-#### Status Legend ####
-👀 - Todo (What I'm looking at doing next)
-🚧 - In Progress
-✅ - Completed
-⬇️  - De-prioritized
+#### Feature / Milestone Status Legend ####
+- 👀 Todo (What I'm looking at doing next)
+- 🚧 In Progress
+- ✅ Completed
+- ⬇️ De-prioritized
 
 ----
 # ROADMAP MILESTONES #
