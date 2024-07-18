@@ -270,7 +270,7 @@ def display_checks():
     num_columns = int(config.get('Tables', 'number_of_columns'))
     colors['header_style'] = "" if config.get('Tables', 'header_style') in [None, "None"] else config.get('Tables', 'header_style')
     colors['border_style'] = "" if config.get('Tables', 'border_style') in [None, "None"] else config.get('Tables', 'border_style')
-    colors['background_style'] = "" if config.get('Tables', 'background_style') in [None, "None"] else config.get('Tables', 'background_style')
+    colors['default_style'] = "" if config.get('Tables', 'default_style') in [None, "None"] else config.get('Tables', 'default_style')
     colors['column_style'] = "" if config.get('Tables', 'column_style') in [None, "None"] else config.get('Tables', 'column_style')
     colors['check_background_style'] = "" if config.get('Tables', 'check_background_style') in [None, "None"] else config.get('Tables', 'check_background_style')
 
@@ -282,7 +282,7 @@ def display_checks():
             expand=True, 
             box=MINIMAL,
             border_style=colors["border_style"],
-            style=colors["background_style"]
+            style=colors["default_style"]
         )
 
         current_groups = groups[i:i + num_columns]

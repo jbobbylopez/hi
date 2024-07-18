@@ -89,10 +89,41 @@ config.ini example:
 ```
 [Paths]
 checks_file = config/checks.yml
+
 [Tables]
 number_of_columns = 2 
+default_style = None
+header_style = bold magenta
+border_style = bright_white
+column_style = white
+check_background_style = None
 
 ```
+
+##### number_of_columns #####
+The 'number_of_columns' setting (default = 2) allows you to configure the
+number of columns you would like rendered per table.  It is possible set
+this to 7 or higher for extra-wide terminals. However I would suggested anywhere
+between 2 and 5 for the best results.
+
+##### default_style #####
+Default style of the table background, which would be applied to everything
+if no other styles below are defined.
+
+##### header_style #####
+Style of table headers.
+
+##### border_style #####
+Style of table borders.
+
+##### column_style #####
+Style of the column within a table.
+
+##### check_background_style #####
+Style of the text for status messages (within a column).
+
+Read more about the styles and colors that you can use in ` colors.md `.
+
 
 #### config/groups.yml ####
 *hi* "status groups" typically referred to simply as "groups" can be customized in the `  config/groups.yml  ` file, and only those system checks
