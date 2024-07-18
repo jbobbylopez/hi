@@ -70,6 +70,19 @@ changes may already be in development progress.
    - [🚧] Enable customization of output (colors, formatting of tables).  This
       will help prevent the tool's output from becoming too mundane, and
       enable users to refine the tool to show exactly what they want to see.
+
+- Features and Functionality
+
+    - More information on a specific system check from the command line
+        - Something like 'hi info <check_name>', or 'hi info <check_num>'
+        - Shows details about the specific check, including:
+            - Current status of the check
+            - The check command
+            - The check description
+            - The check command output
+            - The check command indicators and status messages
+            - Maybe some historical info if we go the DB route for tracking
+
 #### Testing ####
 - Improved testing scope, focused on indicators and statuses
 
