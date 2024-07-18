@@ -81,7 +81,12 @@ changes may already be in development progress.
             - The check description
             - The check command output
             - The check command indicators and status messages
-            - Maybe some historical info if we go the DB route for tracking
+            - Maybe some historical info via status change log
+
+    - Check Status Change Log
+        - Log state changes cor status checks
+        - This may be a straight log file (JSONL)
+            - Log can be controlled by logrotate
 
 #### Testing ####
 - Improved testing scope, focused on indicators and statuses
