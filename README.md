@@ -96,10 +96,22 @@ default_style = None
 header_style = bold magenta
 border_style = bright_white
 column_style = white
-check_background_style = None
+text_style = None
 
 ```
 
+### Report ###
+##### header_style #####
+The style of the hi tool report header ("HOST INFORMATION").
+
+##### hostname_style #####
+The style of the hi tool report hostname.
+
+##### ip_style #####
+The style of the hi tool report ip.
+
+
+### Tables ###
 ##### number_of_columns #####
 The 'number_of_columns' setting (default = 2) allows you to configure the
 number of columns you would like rendered per table.  It is possible set
@@ -119,7 +131,7 @@ Style of table borders.
 ##### column_style #####
 Style of the column within a table.
 
-##### check_background_style #####
+##### text_style #####
 Style of the text for status messages (within a column).
 
 Read more about the styles and colors that you can use in ` colors.md `.

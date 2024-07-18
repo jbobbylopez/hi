@@ -32,9 +32,9 @@ def test_hi_config_argv_watch_info_config(capsys):
         host_information.display_checks()
         captured = capsys.readouterr()
         output = captured.out
-        assert "Host Information:" in output
+        assert "HOST INFORMATION" in output
         assert re.search(pattern, output), "No standard check indicators detected"
-        print("Test passed: 'Host Information' in output")
+        print("Test passed: 'HOST INFORMATION' in output")
 
     finally:
         sys.argv = original_argv
@@ -51,9 +51,9 @@ def test_hi_config_argv_config(capsys):
         host_information.display_checks()
         captured = capsys.readouterr()
         output = captured.out
-        assert "Host Information:" in output
+        assert "HOST INFORMATION" in output
         assert re.search(pattern, output), "No standard check indicators detected"
-        print("Test passed: 'Host Information' in output")
+        print("Test passed: 'HOST INFORMATION' in output")
 
     finally:
         sys.argv = original_argv
@@ -70,7 +70,7 @@ def test_hi_config_argv_info(capsys):
         host_information.display_checks()
         captured = capsys.readouterr()
         output = captured.out
-        assert "Host Information:" in output
+        assert "HOST INFORMATION" in output
         assert re.search(pattern, output), "No standard check indicators detected"
         print("pass: host_information.main() | output confirmed.")
 
@@ -89,7 +89,7 @@ def test_hi_config_argv_watch_info(capsys):
         host_information.display_checks()
         captured = capsys.readouterr()
         output = captured.out
-        assert "Host Information:" in output
+        assert "HOST INFORMATION" in output
         assert re.search(pattern, output), "No standard check indicators detected"
         print("pass: host_information.main() | output confirmed.")
 
@@ -103,7 +103,7 @@ def test_hi_config_argv_defaults(capsys):
     captured = capsys.readouterr()
     output = captured.out
     
-    assert "Host Information:" in output
+    assert "HOST INFORMATION" in output
     assert re.search(pattern, output), "No standard check indicators detected"
     print("pass: host_information.main() | output confirmed.")
     

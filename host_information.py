@@ -248,7 +248,8 @@ def display_checks():
     Display categorized checks in Rich tables, handling unequal lists gracefully.
     """
 
-    colors = {}
+    report_colors = {}
+    table_colors = {}
     local_ip_result = get_ip_address()
     hostname_result = get_hostname_address()
     script_dir = get_script_dir()
@@ -260,7 +261,12 @@ def display_checks():
         info = None
 
     # Print hi tool display header
-    console.print(f"[- Host Information: {hostname_result['hostname']} ({hostname_result['ip_address']}) {{{local_ip_result['ip_address']}}} -]")
+    report_colors['header_style'] = "" if config.get('Report', 'header_style') in [None, "None"] else config.get('Report', 'header_style')
+    report_colors['hostname_style'] = "" if config.get('Report', 'hostname_style') in [None, "None"] else config.get('Report', 'hostname_style')
+    report_colors['ip_style'] = "" if config.get('Report', 'ip_style') in [None, "None"] else config.get('Report', 'ip_style')
+    console.print(f"⟪ HOST INFORMATION ⟫", end="", style=report_colors['header_style'])
+    console.print(f" {hostname_result['hostname']}", end="", style=report_colors['hostname_style'])
+    console.print(f" | {local_ip_result['ip_address']}", end="", style=report_colors['ip_style'])
 
     # Get all status messages for each target group in 'config/groups.yaml'
     group_statuses = {group: check_engine_yaml(group, info) for group in groups}
@@ -268,32 +274,32 @@ def display_checks():
     # Rich table output
     # read number_of_columns per table specified in config.ini
     num_columns = int(config.get('Tables', 'number_of_columns'))
-    colors['header_style'] = "" if config.get('Tables', 'header_style') in [None, "None"] else config.get('Tables', 'header_style')
-    colors['border_style'] = "" if config.get('Tables', 'border_style') in [None, "None"] else config.get('Tables', 'border_style')
-    colors['default_style'] = "" if config.get('Tables', 'default_style') in [None, "None"] else config.get('Tables', 'default_style')
-    colors['column_style'] = "" if config.get('Tables', 'column_style') in [None, "None"] else config.get('Tables', 'column_style')
-    colors['check_background_style'] = "" if config.get('Tables', 'check_background_style') in [None, "None"] else config.get('Tables', 'check_background_style')
+    table_colors['default_style'] = "" if config.get('Tables', 'default_style') in [None, "None"] else config.get('Tables', 'default_style')
+    table_colors['header_style'] = "" if config.get('Tables', 'header_style') in [None, "None"] else config.get('Tables', 'header_style')
+    table_colors['border_style'] = "" if config.get('Tables', 'border_style') in [None, "None"] else config.get('Tables', 'border_style')
+    table_colors['column_style'] = "" if config.get('Tables', 'column_style') in [None, "None"] else config.get('Tables', 'column_style')
+    table_colors['text_style'] = "" if config.get('Tables', 'text_style') in [None, "None"] else config.get('Tables', 'text_style')
 
     # Generate the tables
     for i in range(0, len(groups), num_columns):
         table = Table(
             show_header=True, 
-            header_style=colors["header_style"],
+            header_style=table_colors["header_style"],
             expand=True, 
             box=MINIMAL,
-            border_style=colors["border_style"],
-            style=colors["default_style"]
+            border_style=table_colors["border_style"],
+            style=table_colors["default_style"]
         )
 
         current_groups = groups[i:i + num_columns]
         for group in current_groups:
-            table.add_column(group, style=colors["column_style"], justify="left", no_wrap=True, width=40)
+            table.add_column(group, style=table_colors["column_style"], justify="left", no_wrap=True, width=40)
 
         max_length = max(len(group_statuses[group]) for group in current_groups)
 
         for j in range(max_length):
             row = [
-                Text(group_statuses[group][j], style=colors['check_background_style']) 
+                Text(group_statuses[group][j], style=table_colors['text_style']) 
                 if j < len(group_statuses[group]) 
                 else ""
                 for group in current_groups
