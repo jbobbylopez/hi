@@ -349,6 +349,7 @@ def display_hi_watch_report():
     print("\033[H", end='')  # ANSI escape code to move cursor to top-left
     display_hi_report()
     console.print(center_text("[🟢] watching.. (ctrl-c to quit)"), style="bold green")
+    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
 
 def hide_cursor_clear_screen():
     print("\033[?25l", end='')  # Hide the cursor
