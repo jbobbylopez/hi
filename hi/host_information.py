@@ -22,7 +22,7 @@ def get_script_dir():
 # Read in 'config/config.ini'
 script_dir = get_script_dir()
 config = configparser.ConfigParser()
-config.read(os.path.join(script_dir, 'config/config.ini'))
+config.read(os.path.join(os.path.dirname(script_dir), 'config/config.ini'))
 
 def center_text(text):
     """
@@ -206,6 +206,7 @@ def check_engine_yaml(check_type, verbose=False):
     group_output = []
     sub_checks = None
     script_dir = get_script_dir()
+    hi_dir     = os.path.dirname(script_dir)
 
     # read checks_file specified in config.ini
     # This is useful for quick testing other checks.yml files with
@@ -222,7 +223,7 @@ def check_engine_yaml(check_type, verbose=False):
         checks_yaml_file = ini_checks_file
 
     try:
-        checks = get_config_yaml(os.path.join(script_dir, checks_yaml_file))
+        checks = get_config_yaml(os.path.join(hi_dir, checks_yaml_file))
         checks = checks['checks']
     except Exception as e:
         return str(e)
@@ -253,7 +254,8 @@ def display_checks():
     local_ip_result = get_ip_address()
     hostname_result = get_hostname_address()
     script_dir = get_script_dir()
-    groups = get_config_yaml(os.path.join(script_dir, "config/groups.yml"))['groups']
+    hi_dir     = os.path.dirname(script_dir)
+    groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
 
     if enable_check_info:
         info = 'info' in sys.argv

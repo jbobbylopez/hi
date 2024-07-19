@@ -4,7 +4,12 @@ import sys
 import os
 # Make sure script can find and import modules from directories relative to the script’s location
 # ensures that the directory containing this script is searched first when we import modules.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
+tests_dir = os.path.join(os.path.dirname(__file__))
+hi_dir = os.path.dirname(tests_dir)
+app_dir = hi_dir + "/hi"
+sys.path.insert(0, os.path.abspath(tests_dir))
+sys.path.insert(0, os.path.abspath(app_dir))
+
 
 import io
 import re
