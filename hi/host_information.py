@@ -14,6 +14,13 @@ from rich.table import Table
 from rich.box import MINIMAL
 from rich.align import Align
 from rich.text import Text
+import logging
+import logging.handlers
+import queue
+import json
+
+
+STATE_FILE_PATH = 'state.json'
 
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
@@ -119,7 +126,14 @@ def check_record_handler(check, output, indicators):
 def compile_output_messages(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
     status = ""
     check_indicators = None
+    system_checks = {}
+    check_record = {}
     output_messages = []
+
+    # Configure logging at the start of your script
+    log_file_path = 'system_checks.json'
+    configure_logging(log_file_path)
+
 
     # The below 'if output:' statement means that the command completed
     # successfully, and 'output' contains any data returned by the executed
@@ -146,6 +160,14 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                 indicator = '❌'
                 
         output_messages.append(f"[{indicator}] {check} {output}")
+        check_record['name'] = check
+        check_record['icon'] = indicator
+        check_record['status'] = output
+
+    # log something 
+    #log_state_change(check_record['name'], check_record['icon'], check_record['status'])
+    current_state = {check_record['name']}
+    check_system_state(current_state)
 
     # Append info: value if present
     if info:
@@ -342,6 +364,72 @@ def hi_watch(interval=2):
             console.print("\n[hi: continuous monitoring stopped.]")
         finally:
             print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
+
+# Custom JSON formatter for log records
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "timestamp": datetime.utcnow().isoformat() + 'Z',
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "check_name": record.check_name,
+            "previous_state": record.previous_state,
+            "new_state": record.new_state
+        }
+        return json.dumps(log_record)
+
+def configure_logging(log_file_path):
+    log_queue = queue.Queue()
+
+    # Queue handler to handle log records
+    queue_handler = logging.handlers.QueueHandler(log_queue)
+    
+    # File handler to write log records to a file
+    file_handler = logging.FileHandler(log_file_path, mode='a')  # 'a' for append mode
+    file_handler.setFormatter(JsonFormatter())
+
+    # Configure the root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(queue_handler)
+
+    # Listener to process log records from the queue
+    listener = logging.handlers.QueueListener(log_queue, file_handler)
+    listener.start()
+
+def log_state_change(check_name, previous_state, new_state):
+    logging.info(
+        f'{check_name} state changed from {previous_state} to {new_state}',
+        extra={
+            'check_name': check_name,
+            'previous_state': previous_state,
+            'new_state': new_state
+        }
+    )
+
+def read_initial_state():
+    if not os.path.isfile(STATE_FILE_PATH):
+        return {}
+    with open(STATE_FILE_PATH, 'r') as f:
+        return json.load(f)
+
+def write_state(state):
+    with open(STATE_FILE_PATH, 'w') as f:
+        json.dump(state, f, indent=4)
+
+def check_system_state(current_state):
+    # Dictionary to store the initial state
+    last_known_state = read_initial_state()
+
+    # Compare current state with last known state
+    for check_name, new_state in current_state.items():
+        previous_state = last_known_state.get(check_name)
+        if previous_state != new_state:
+            log_state_change(check_name, previous_state, new_state)
+            last_known_state[check_name] = new_state
+
+    # Update the state file with the new state
+    write_state(last_known_state)
 
 # Call the function to execute
 console = Console()
