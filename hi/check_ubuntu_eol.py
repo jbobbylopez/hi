@@ -7,12 +7,15 @@ import time
 
 CACHE_FILE = '/tmp/ubuntu_eol_cache.json'
 CACHE_DURATION = 7 * 24 * 60 * 60  # One week in seconds
+OS_INFO = []
 
 def get_ubuntu_version():
     ''' Retrieves the current Ubuntu version '''
-    result = subprocess.run(['lsb_release', '-si', '-sr'], stdout=subprocess.PIPE)
-    output = result.stdout.decode('utf-8').strip().split()
-    return output[0], output[1]  # Returns OS name and version
+    global OS_INFO
+    if OS_INFO == []:
+        result = subprocess.run(['lsb_release', '-si', '-sr'], stdout=subprocess.PIPE)
+        OS_INFO = result.stdout.decode('utf-8').strip().split()
+    return OS_INFO[0], OS_INFO[1]  # Returns OS name and version
 
 def fetch_eol_dates(url):
     ''' Fetches the EOL dates data from the endoflife.date API '''
