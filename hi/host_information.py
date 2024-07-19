@@ -22,6 +22,7 @@ import json
 
 STATE_FILE_PATH = 'state.json'
 STATE = {}
+LOGGING_ENABLED = False
 
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
@@ -443,14 +444,22 @@ def check_system_state(current_state, check_record):
                 last_known_state[check_name] = new_state
 
                 # log state change
-                log_state_change(check_name, previous_state, new_state)
+                if LOGGING_ENABLED:
+                    log_state_change(check_name, previous_state, new_state)
 
                 # Update the state file with the new state
                 write_state(last_known_state)
 
 # Configure logging at the start of your script
-log_file_path = 'system_checks.json'
-configure_logging(log_file_path)
+
+try:
+    LOGGING_ENABLED = config.get('Logging', 'enable_logging')
+    ini_log_file = config.get('Paths', 'log_file')
+    if ini_log_file and LOGGING_ENABLED.lower() == "true":
+        configure_logging(ini_log_file)
+except Exception as e:
+    print(f"Error: log_file not configured correctly in config.ini: {e}")
+
 
 # Call the function to execute
 console = Console()
