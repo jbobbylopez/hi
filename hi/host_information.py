@@ -132,11 +132,6 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     check_record = {}
     output_messages = []
 
-    # Configure logging at the start of your script
-    log_file_path = 'system_checks.json'
-    configure_logging(log_file_path)
-
-
     # The below 'if output:' statement means that the command completed
     # successfully, and 'output' contains any data returned by the executed
     # command.  'check' contains the name of the check in config/checks.yml.
@@ -451,6 +446,10 @@ def check_system_state(current_state, check_record):
 
                 # Update the state file with the new state
                 write_state(last_known_state)
+
+# Configure logging at the start of your script
+log_file_path = 'system_checks.json'
+configure_logging(log_file_path)
 
 # Call the function to execute
 console = Console()
