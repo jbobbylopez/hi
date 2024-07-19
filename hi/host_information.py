@@ -444,7 +444,6 @@ def check_system_state(current_state, check_record):
         if check_name == check_record['name']:
             previous_state = last_known_state.get(check_name)
             if previous_state != new_state:
-                log_state_change(check_name, previous_state, new_state)
                 last_known_state[check_name] = new_state
 
                 # log state change
