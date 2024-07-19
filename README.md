@@ -246,7 +246,7 @@ nicely grouped together.
 
 Add an alias to your ~/.bashrc to call this script:
 
-`alias hi="python3 /home/jbl/scripts/hi/host_information.py $@"`
+`alias hi="python3 /path/to/hi/hi/host_information.py $@"`
 
 After adding these lines, save the ~/.bashrc file and apply the changes:
 `source ~/.bashrc`
