@@ -21,6 +21,7 @@ import json
 
 
 STATE_FILE_PATH = 'state.json'
+STATE = {}
 
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
@@ -209,10 +210,8 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
         check_record['sub_checks'][sub_check]['status'] = sub_check_output
         check_record['sub_checks'][sub_check]['command'] = sub_check_command
 
-    # log something 
-    #log_state_change(check_record['name'], check_record['icon'], check_record['status'])
     current_state = {check_record['name']:check_record['result'] }
-    check_system_state(current_state)
+    check_system_state(current_state, check_record)
 
     final_output = "\n".join(output_messages)
     return final_output
@@ -426,23 +425,33 @@ def read_initial_state():
     with open(STATE_FILE_PATH, 'r') as f:
         return json.load(f)
 
+def state(state):
+    if state == {}:
+        global STATE
+        STATE = read_initial_state()
+    return STATE
+
 def write_state(state):
     with open(STATE_FILE_PATH, 'w') as f:
         json.dump(state, f, indent=4)
 
-def check_system_state(current_state):
+def check_system_state(current_state, check_record):
     # Dictionary to store the initial state
-    last_known_state = read_initial_state()
+    last_known_state = state(STATE)
 
     # Compare current state with last known state
     for check_name, new_state in current_state.items():
-        previous_state = last_known_state.get(check_name)
-        if previous_state != new_state:
-            log_state_change(check_name, previous_state, new_state)
-            last_known_state[check_name] = new_state
+        if check_name == check_record['name']:
+            previous_state = last_known_state.get(check_name)
+            if previous_state != new_state:
+                log_state_change(check_name, previous_state, new_state)
+                last_known_state[check_name] = new_state
 
-    # Update the state file with the new state
-    write_state(last_known_state)
+                # log state change
+                log_state_change(check_name, previous_state, new_state)
+
+                # Update the state file with the new state
+                write_state(last_known_state)
 
 # Call the function to execute
 console = Console()
