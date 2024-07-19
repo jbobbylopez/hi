@@ -82,6 +82,7 @@ def get_config_yaml(config_yaml):
 def check_record_handler(check, output, indicators):
     check_record = {}
     check_record['name'] = check
+    check_record['result'] = 'SUCCESS'
     check_record['icon'] = '✅' # Default positive indicator
     check_record['stat_date_str'] = None
     threshold_days = 7  # Assuming 7 days threshold for date_check
@@ -90,17 +91,17 @@ def check_record_handler(check, output, indicators):
         check_record['stat_date_str'] = output.strip().split(' ')[1]
         check_record['stat_date'] = datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d')
         if datetime.now() - check_record['stat_date'] > timedelta(days=threshold_days):
+            check_record['result'] = 'FAIL'
             check_record['icon'] = '❌'
             check_record['status'] = f"Last modified date {check_record['stat_date_str']} is older than {threshold_days} days"
         else:
-            check_record['icon'] = '✅'
             check_record['status'] = f"Last modified date {check_record['stat_date_str']} is within {threshold_days} days"
 
     elif 'expressvpn' in check.lower():
         if re.search("Connected", output.strip()):
-            check_record['icon'] = '✅'
             check_record['status'] = f"{check} Status: {output.strip()}"
         else:
+            check_record['result'] = 'FAIL'
             check_record['icon'] = '❌'
             check_record['status'] = f"{check} Status: {output.strip()}"
 
@@ -161,22 +162,22 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                 
         output_messages.append(f"[{indicator}] {check} {output}")
         check_record['name'] = check
+        check_record['result'] = 'FAIL'
         check_record['icon'] = indicator
         check_record['status'] = output
 
-    # log something 
-    #log_state_change(check_record['name'], check_record['icon'], check_record['status'])
-    current_state = {check_record['name']}
-    check_system_state(current_state)
 
     # Append info: value if present
     if info:
         output_messages.append(f"  [🔹] {info}")
+        check_record['info'] = info
 
     # Append sub_checks if present
     # .. this will likely need to be turned into it's own function
     if sub_checks:
+        check_record['sub_checks'] = {}
         for sub_check in sub_checks:
+            check_record['sub_checks'][sub_check] = {}
             indicator = '⚫'
             status = ""
             sub_check_indicators = None
@@ -191,6 +192,9 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                     if 'positive' in sub_check_indicators and 'status' in sub_check_indicators['positive']:
                         sub_check_output = sub_check_indicators['positive']['status'] 
                 output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+                check_record['sub_checks'][sub_check]['icon'] = indicator
+                check_record['sub_checks'][sub_check]['status'] = sub_check_output
+                check_record['sub_checks'][sub_check]['command'] = sub_check_command
 
             else:
                 if 'indicators' in sub_checks[sub_check]:
@@ -200,6 +204,15 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                     if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
                         sub_check_output = sub_check_indicators['negative']['status'] 
                 output_messages.append(f" [{indicator}] {sub_check}: {sub_check_output}")
+
+        check_record['sub_checks'][sub_check]['icon'] = indicator
+        check_record['sub_checks'][sub_check]['status'] = sub_check_output
+        check_record['sub_checks'][sub_check]['command'] = sub_check_command
+
+    # log something 
+    #log_state_change(check_record['name'], check_record['icon'], check_record['status'])
+    current_state = {check_record['name']:check_record['result'] }
+    check_system_state(current_state)
 
     final_output = "\n".join(output_messages)
     return final_output
