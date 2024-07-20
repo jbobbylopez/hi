@@ -33,23 +33,11 @@ Ensure you have the following installed on your system:
 
 *   Python 3.x (>= 3.6)
     
-*   Required Python modules:
-    
-    *   subprocess
-        
-    *   socket
-        
-    *   re
-        
-    *   os
-        
-    *   pyyaml
-        
-    *   rich
-        
-
 You can check your version of python with the following command:
 `   python3 --version   `
+
+*   Required Python modules:
+See ` requirements.txt `.        
 
 Ensure that your terminal supports the UTF8 character set for proper display of status icons.
 
@@ -61,17 +49,20 @@ Ensure that your terminal supports the UTF8 character set for proper display of 
     
 2.  `pip install -r requirements.txt`
 
-3.  `python3 host_information.py`
+3.  Update ` config/config.ini ` and your custom ` checks.yml ` file
+    accordingly.
+
+4.  `python3 hi/host_information.py`
     
 
-### Configuration
+# Configuration
 There are currently three (3) configuration files that 'hi' depends on.  They are as
 follows:
 - config/config.ini
 - config/groups.yml
 - config/checks.yml
 
-#### config/config.ini ####
+## config/config.ini ####
 This file is the main configuration file that tells 'hi' what files it needs and options it should enable.
 
 For example, you can use the 'checks_file' to specify a custom location of
@@ -80,25 +71,64 @@ the specific checks.yml formatted file you would like to use.
 Also, you can configure table output options to customize how your reports
 displayed.
 
+##### config.ini example #####
+```
+[Paths]
+checks_file = config/checks.yml
+log_file = logs/hi_log.json
+
+[Report]
+header_style = black on yellow
+hostname_style = yellow on black
+ip_style = bold green on black
+
+[Tables]
+number_of_columns = 3 
+default_style = bold magenta
+header_style = bold magenta
+border_style = bold bright_green
+column_style = bright_green on magenta
+text_style = None
+
+[Logging]
+enable_logging = false
+
+```
+
+#### Colors and Styles ####
+Colors and styles can be applied to various parts of the *hi* display
+output.  The ` config.ini ` file that comes with this tool provides some
+examples.
+
+Read more about the styles and colors that are available for use in ` colors.md `.
+
+
+### Paths ###
+
 ##### checks_file #####
 The 'checks_file' setting tells *hi* where YOUR custom 'checks.yml' file is located.  The checks file can be named anything,
 as long as it is a properly formatted YAML file.  It should look something like the checks.yml or example.yml files that comes
 with this tool.
 
-config.ini example:
+##### log_file #####
+The `log_file` is the location where 'hi' writes it's logging information.
+The logs are in JSONL (JSON Lines) format, and so this file would
+ideally be named with a .json extension.
+
+You can create a sub-directory to store your logs within the 'hi' tool
+directory, for example 'logs/', and have 'hi' write it's logs there.
+
+For example
 ```
 [Paths]
 checks_file = config/checks.yml
-
-[Tables]
-number_of_columns = 2 
-default_style = None
-header_style = bold magenta
-border_style = bright_white
-column_style = white
-text_style = None
-
+log_file = logs/hi_log.json
 ```
+
+The JSONL logging format was selected because it is easily parsable by 
+upstream log analysis and monitoring tools, such as Logstash, Graylog, 
+Zabbix, Splunk, and others.
+
 
 ### Report ###
 ##### header_style #####
@@ -134,8 +164,17 @@ Style of the column within a table.
 ##### text_style #####
 Style of the text for status messages (within a column).
 
-Read more about the styles and colors that you can use in ` colors.md `.
 
+### OS Bar ###
+##### os_text_style #####
+Style of the text for the Operating System and End of Life bar.
+This feature currently on supports Ubuntu operating systems at the moment.
+
+
+### Logging ###
+##### enable_logging #####
+Set ` enable_logging = true ` if you want to enable logging.  This is set
+to 'false' by default.  If you enable logging, be sure to configure the `log_file` variable under [Paths] as well.
 
 #### config/groups.yml ####
 *hi* "status groups" typically referred to simply as "groups" can be customized in the `  config/groups.yml  ` file, and only those system checks

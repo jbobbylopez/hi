@@ -62,7 +62,7 @@ changes may already be in development progress.
     - API friendly data structures
         - Improve the structure of messages so this data can be exposed in
           an API for use in another view, like an HTML report.
-    - Do something a bit more constructive with the hi header ("Host
+    - [🚧]Do something a bit more constructive with the hi header ("Host
       Information:") line
 
 - Aesthetic Improvements
@@ -83,13 +83,18 @@ changes may already be in development progress.
             - The check command indicators and status messages
             - Maybe some historical info via status change log
 
-    - Check Status Change Log
-        - Log state changes cor status checks
+    - [🚧]Check Status Change Log
+        - Log state changes or status checks
         - This may be a straight log file (JSONL)
             - Log can be controlled by logrotate
 
 #### Testing ####
 - Improved testing scope, focused on indicators and statuses
+- Include testing for logging configuration, number of open files.
+- Include testing for long running watch instances (see if open files stay
+  static or trend upward)
+- Include testing for sub-checks
+- Include testing for state.json
 
 #### Logical Separation of Concerns ####
 - Externalization of hard-coded configs into config/config.ini

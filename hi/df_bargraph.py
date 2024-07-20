@@ -41,7 +41,13 @@ def format_size(used, total, free):
 
 def get_disk_usage():
     """Gather disk usage information."""
-    partitions = psutil.disk_partitions()
+    partitions = {}
+    try:
+        partitions = psutil.disk_partitions()
+    except OSError as e:
+        if e.errno == 24: # Too many files open
+            print(f"too many files open: %s", e)
+
     usage_list = []
 
     for partition in partitions:

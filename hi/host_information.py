@@ -14,6 +14,15 @@ from rich.table import Table
 from rich.box import MINIMAL
 from rich.align import Align
 from rich.text import Text
+import logging
+import logging.handlers
+import queue
+import json
+
+
+STATE_FILE_PATH = 'state.json'
+STATE = {}
+LOGGING_ENABLED = False
 
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
@@ -75,6 +84,7 @@ def get_config_yaml(config_yaml):
 def check_record_handler(check, output, indicators):
     check_record = {}
     check_record['name'] = check
+    check_record['result'] = 'SUCCESS'
     check_record['icon'] = '✅' # Default positive indicator
     check_record['stat_date_str'] = None
     threshold_days = 7  # Assuming 7 days threshold for date_check
@@ -83,17 +93,17 @@ def check_record_handler(check, output, indicators):
         check_record['stat_date_str'] = output.strip().split(' ')[1]
         check_record['stat_date'] = datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d')
         if datetime.now() - check_record['stat_date'] > timedelta(days=threshold_days):
+            check_record['result'] = 'FAIL'
             check_record['icon'] = '❌'
             check_record['status'] = f"Last modified date {check_record['stat_date_str']} is older than {threshold_days} days"
         else:
-            check_record['icon'] = '✅'
             check_record['status'] = f"Last modified date {check_record['stat_date_str']} is within {threshold_days} days"
 
     elif 'expressvpn' in check.lower():
         if re.search("Connected", output.strip()):
-            check_record['icon'] = '✅'
             check_record['status'] = f"{check} Status: {output.strip()}"
         else:
+            check_record['result'] = 'FAIL'
             check_record['icon'] = '❌'
             check_record['status'] = f"{check} Status: {output.strip()}"
 
@@ -119,6 +129,8 @@ def check_record_handler(check, output, indicators):
 def compile_output_messages(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
     status = ""
     check_indicators = None
+    system_checks = {}
+    check_record = {}
     output_messages = []
 
     # The below 'if output:' statement means that the command completed
@@ -146,15 +158,23 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                 indicator = '❌'
                 
         output_messages.append(f"[{indicator}] {check} {output}")
+        check_record['name'] = check
+        check_record['result'] = 'FAIL'
+        check_record['icon'] = indicator
+        check_record['status'] = output
+
 
     # Append info: value if present
     if info:
         output_messages.append(f"  [🔹] {info}")
+        check_record['info'] = info
 
     # Append sub_checks if present
     # .. this will likely need to be turned into it's own function
     if sub_checks:
+        check_record['sub_checks'] = {}
         for sub_check in sub_checks:
+            check_record['sub_checks'][sub_check] = {}
             indicator = '⚫'
             status = ""
             sub_check_indicators = None
@@ -169,6 +189,9 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                     if 'positive' in sub_check_indicators and 'status' in sub_check_indicators['positive']:
                         sub_check_output = sub_check_indicators['positive']['status'] 
                 output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+                check_record['sub_checks'][sub_check]['icon'] = indicator
+                check_record['sub_checks'][sub_check]['status'] = sub_check_output
+                check_record['sub_checks'][sub_check]['command'] = sub_check_command
 
             else:
                 if 'indicators' in sub_checks[sub_check]:
@@ -177,7 +200,14 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                         indicator = sub_check_indicators['negative']['icon']
                     if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
                         sub_check_output = sub_check_indicators['negative']['status'] 
-                output_messages.append(f" [{indicator}] {sub_check}: {sub_check_output}")
+                output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+
+        check_record['sub_checks'][sub_check]['icon'] = indicator
+        check_record['sub_checks'][sub_check]['status'] = sub_check_output
+        check_record['sub_checks'][sub_check]['command'] = sub_check_command
+
+    current_state = {check_record['name']:check_record['result'] }
+    check_system_state(current_state, check_record)
 
     final_output = "\n".join(output_messages)
     return final_output
@@ -320,6 +350,7 @@ def display_hi_watch_report():
     print("\033[H", end='')  # ANSI escape code to move cursor to top-left
     display_hi_report()
     console.print(center_text("[🟢] watching.. (ctrl-c to quit)"), style="bold green")
+    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
 
 def hide_cursor_clear_screen():
     print("\033[?25l", end='')  # Hide the cursor
@@ -342,6 +373,92 @@ def hi_watch(interval=2):
             console.print("\n[hi: continuous monitoring stopped.]")
         finally:
             print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
+
+# Custom JSON formatter for log records
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "timestamp": datetime.utcnow().isoformat() + 'Z',
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "check_name": record.check_name,
+            "previous_state": record.previous_state,
+            "new_state": record.new_state
+        }
+        return json.dumps(log_record)
+
+def configure_logging(log_file_path):
+    log_queue = queue.Queue()
+
+    # Queue handler to handle log records
+    queue_handler = logging.handlers.QueueHandler(log_queue)
+    
+    # File handler to write log records to a file
+    file_handler = logging.FileHandler(log_file_path, mode='a')  # 'a' for append mode
+    file_handler.setFormatter(JsonFormatter())
+
+    # Configure the root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(queue_handler)
+
+    # Listener to process log records from the queue
+    listener = logging.handlers.QueueListener(log_queue, file_handler)
+    listener.start()
+
+def log_state_change(check_name, previous_state, new_state):
+    logging.info(
+        f'{check_name} state changed from {previous_state} to {new_state}',
+        extra={
+            'check_name': check_name,
+            'previous_state': previous_state,
+            'new_state': new_state
+        }
+    )
+
+def read_initial_state():
+    if not os.path.isfile(STATE_FILE_PATH):
+        return {}
+    with open(STATE_FILE_PATH, 'r') as f:
+        return json.load(f)
+
+def state(state):
+    if state == {}:
+        global STATE
+        STATE = read_initial_state()
+    return STATE
+
+def write_state(state):
+    with open(STATE_FILE_PATH, 'w') as f:
+        json.dump(state, f, indent=4)
+
+def check_system_state(current_state, check_record):
+    # Dictionary to store the initial state
+    last_known_state = state(STATE)
+
+    # Compare current state with last known state
+    for check_name, new_state in current_state.items():
+        if check_name == check_record['name']:
+            previous_state = last_known_state.get(check_name)
+            if previous_state != new_state:
+                last_known_state[check_name] = new_state
+
+                # log state change
+                if LOGGING_ENABLED:
+                    log_state_change(check_name, previous_state, new_state)
+
+                # Update the state file with the new state
+                write_state(last_known_state)
+
+# Configure logging if logging is enabled
+try:
+    LOGGING_ENABLED = config.get('Logging', 'enable_logging')
+    ini_log_file = config.get('Paths', 'log_file')
+    if ini_log_file and LOGGING_ENABLED.lower() == "true":
+        configure_logging(ini_log_file)
+except Exception as e:
+    print(f"Error: log_file not configured correctly in config.ini: {e}")
+
 
 # Call the function to execute
 console = Console()
