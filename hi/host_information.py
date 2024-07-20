@@ -101,11 +101,11 @@ def check_record_handler(check, output, indicators):
 
     elif 'expressvpn' in check.lower():
         if re.search("Connected", output.strip()):
-            check_record['status'] = f"{check} Status: {output.strip()}"
+            check_record['status'] = f"Status: {output.strip()}"
         else:
             check_record['result'] = 'FAIL'
             check_record['icon'] = '❌'
-            check_record['status'] = f"{check} Status: {output.strip()}"
+            check_record['status'] = f"Status: {output.strip()}"
 
     else:
         if indicators:
