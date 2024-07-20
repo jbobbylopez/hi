@@ -95,6 +95,14 @@ enable_logging = false
 
 ```
 
+#### Colors and Styles ####
+Colors and styles can be applied to various parts of the *hi* display
+output.  The ` config.ini ` file that comes with this tool provides some
+examples.
+
+Read more about the styles and colors that are available for use in ` colors.md `.
+
+
 ### Paths ###
 
 ##### checks_file #####
@@ -156,7 +164,12 @@ Style of the column within a table.
 ##### text_style #####
 Style of the text for status messages (within a column).
 
-Read more about the styles and colors that you can use in ` colors.md `.
+
+### OS Bar ###
+##### os_text_style #####
+Style of the text for the Operating System and End of Life bar.
+This feature currently on supports Ubuntu operating systems at the moment.
+
 
 ### Logging ###
 ##### enable_logging #####
