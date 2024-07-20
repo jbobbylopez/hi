@@ -200,7 +200,7 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                         indicator = sub_check_indicators['negative']['icon']
                     if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
                         sub_check_output = sub_check_indicators['negative']['status'] 
-                output_messages.append(f" [{indicator}] {sub_check}: {sub_check_output}")
+                output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
 
         check_record['sub_checks'][sub_check]['icon'] = indicator
         check_record['sub_checks'][sub_check]['status'] = sub_check_output
