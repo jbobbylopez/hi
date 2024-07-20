@@ -450,8 +450,7 @@ def check_system_state(current_state, check_record):
                 # Update the state file with the new state
                 write_state(last_known_state)
 
-# Configure logging at the start of your script
-
+# Configure logging if logging is enabled
 try:
     LOGGING_ENABLED = config.get('Logging', 'enable_logging')
     ini_log_file = config.get('Paths', 'log_file')
