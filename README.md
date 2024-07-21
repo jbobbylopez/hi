@@ -7,7 +7,22 @@ hi - Host Information
 quickly, and there will likely be bugs along the way.  Follow the project
 to stay updated on new features and fixes.
 
-"hi" is a command-line tool designed to monitor and display the status of various services running on a host. The services and their respective checks are customizable via a YAML configuration file, allowing for flexibility to suit different monitoring needs. This tool leverages the Rich library to provide visually pleasing output that includes UTF8 status icons, so it should be run in a terminal that supports the UTF8 character-set.
+## Summary
+"hi" is a command-line tool designed to monitor and display the status of various services running on a host. 
+The services and their respective checks are customizable via a YAML configuration file, allowing for 
+flexibility to suit different monitoring needs. This tool leverages the Rich library to provide visually
+pleasing output that includes UTF8 status icons, so it should be run in a terminal that supports the UTF8
+character-set.
+
+## Target Audience
+
+*hi* is a monitoring and reporting tool for Linux power users who tend to live on the command line.
+These would be engineers, developers, researchers, systems administrators, and security experts who
+are regularly hands-on with the systems they are building and maintaining. For folks such as these,
+who appreciate the power of the command-line to get real work done, hi offers insightful monitoring
+and reporting tools to elevate their efficiency and effectiveness. 
+For those who rely on and benefit from the Linux and Open Source community to make sense of the world, this is for you.
+
 
 Features
 --------
