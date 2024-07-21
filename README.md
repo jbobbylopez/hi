@@ -14,6 +14,20 @@ flexibility to suit different monitoring needs. This tool leverages the Rich lib
 pleasing output that includes UTF8 status icons, so it should be run in a terminal that supports the UTF8
 character-set.
 
+You know the Linux '[watch](https://linuxhandbook.com/watch-command/)' command? The *hi* tool is just that, on steroids.
+
+### Some History
+What is the 'watch' command, really? handy little tool that lets you execute a program periodically and watch the output
+change in real-time. It's super useful for monitoring things like system performance or changes in directory contents.
+
+The watch command traces its roots back to the early days of Unix-like systems. It was developed to help users keep an
+eye on command output over time without having to manually re-run the command. 
+
+*hi* takes this functionalty, and pairs it with highly customizable and
+flexible monitoring and reporting dashboard with notification, alerting,
+logging, and API integration capabilities.
+
+
 ## Target Audience
 
 *hi* is a monitoring and reporting tool for Linux power users who tend to live on the command line.
