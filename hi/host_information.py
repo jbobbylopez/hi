@@ -278,7 +278,6 @@ def display_checks():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
     """
-    terminal_width = os.get_terminal_size().columns
     report_colors = {}
     table_colors = {}
     local_ip_result = get_ip_address()
@@ -299,7 +298,7 @@ def display_checks():
     console.print(f"⟪ HOST INFORMATION ⟫", end="", style=report_colors['header_style'])
     console.print(f" {hostname_result['hostname']}", end="", style=report_colors['hostname_style'])
     console.print(f" | {local_ip_result['ip_address']}", end="", style=report_colors['ip_style'])
-    console.print(' ' * (terminal_width - 51), style=report_colors['ip_style'])
+    console.print(' ' * (console.width - 51), style=report_colors['ip_style'])
 
     # Get all status messages for each target group in 'config/groups.yaml'
     group_statuses = {group: check_engine_yaml(group, info) for group in groups}
