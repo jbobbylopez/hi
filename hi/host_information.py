@@ -291,14 +291,26 @@ def display_checks():
     else:
         info = None
 
-    # Print hi tool display header
+
+    # Get hi tool display header styles
     report_colors['header_style'] = "" if config.get('Report', 'header_style') in [None, "None"] else config.get('Report', 'header_style')
     report_colors['hostname_style'] = "" if config.get('Report', 'hostname_style') in [None, "None"] else config.get('Report', 'hostname_style')
     report_colors['ip_style'] = "" if config.get('Report', 'ip_style') in [None, "None"] else config.get('Report', 'ip_style')
-    console.print(f"⟪ HOST INFORMATION ⟫", end="", style=report_colors['header_style'])
-    console.print(f" {hostname_result['hostname']}", end="", style=report_colors['hostname_style'])
-    console.print(f" | {local_ip_result['ip_address']}", end="", style=report_colors['ip_style'])
-    console.print(' ' * (console.width - 51), style=report_colors['ip_style'])
+
+    # construct the header
+    header_text = Text()
+    report_title = "⟪ HOST INFORMATION ⟫"
+    hostname = hostname_result['hostname']
+    local_ip = local_ip_result['ip_address']
+    header_text = f"{report_title} | {hostname} | {local_ip}"
+
+    # print the header
+    console.print(f"{report_title}", end="", style=report_colors['header_style'])
+    console.print(' | ', end="", style=report_colors['ip_style'])
+    console.print(f"{hostname}", end="", style=report_colors['hostname_style'])
+    console.print(' | ', end="", style=report_colors['ip_style'])
+    console.print(f"{local_ip}", end="", style=report_colors['ip_style'])
+    console.print(' ' * (console.width - len(header_text)), style=report_colors['ip_style'])
 
     # Get all status messages for each target group in 'config/groups.yaml'
     group_statuses = {group: check_engine_yaml(group, info) for group in groups}
