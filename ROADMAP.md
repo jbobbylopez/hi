@@ -50,26 +50,22 @@ changes may already be in development progress.
 - Code imporovements - refactoring to increase modularity and maintainability
 
     - `compile_output_messages()`
-        - [✅] Break this out into multiple functions
+        - [🚧] Break this out into multiple functions
         - [👀] Default icons ❌ and ✅ shouldn't be used in the code.  Should be
           pulled from config.ini
         - [👀] Backup related concerns should move to separate functions
         - Indicator logic can likely be broken out
     - `display_checks()`
-        - [✅] Break this out into multiple functions
-        - [✅] Handle table and column creation more dynamically, based on
-          config.ini values for number of columns, etc.
+        - [🚧] Break this out into multiple functions
     - API friendly data structures
         - Improve the structure of messages so this data can be exposed in
           an API for use in another view, like an HTML report.
-    - [🚧]Do something a bit more constructive with the hi header ("Host
-      Information:") line
 
 - Aesthetic Improvements
-
-   - [🚧] Enable customization of output (colors, formatting of tables).  This
-      will help prevent the tool's output from becoming too mundane, and
-      enable users to refine the tool to show exactly what they want to see.
+    - Address some color bleeding that tends to happen around the report
+      header.  Probably has something to do with how curses background
+      colors are terminated/controlled to fill white-space and across
+      lines.
 
 - Features and Functionality
 
@@ -83,10 +79,6 @@ changes may already be in development progress.
             - The check command indicators and status messages
             - Maybe some historical info via status change log
 
-    - [🚧]Check Status Change Log
-        - Log state changes or status checks
-        - This may be a straight log file (JSONL)
-            - Log can be controlled by logrotate
 
 #### Testing ####
 - Improved testing scope, focused on indicators and statuses
@@ -153,6 +145,20 @@ tools and pipelines.
 
 # Completed Features and Improvements #
 Knocking them down, one at a time..
+
+- [✅] Enable customization of output (colors, formatting of tables).  This
+  will help prevent the tool's output from becoming too mundane, and
+  enable users to refine the tool to show exactly what they want to see.
+
+- [✅]Check Status Change Log
+    - Log state changes or status checks
+    - This may be a straight log file (JSONL)
+        - Log can be controlled by logrotate
+
+- [✅]]Do something a bit more constructive with the hi header ("Host Information:") line
+
+- [✅] Handle table and column creation more dynamically, based on
+          config.ini values for number of columns, etc.
 
 - [✅] Sub-checks - the ability to check various sub-status using the same check delclaration pattern.
 
