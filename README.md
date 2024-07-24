@@ -3,9 +3,16 @@
 hi - Host Information
 =====================
 
-**PLEASE NOTE:** This tool is still in early development.  Things will change
-quickly, and there will likely be bugs along the way.  Follow the project
-to stay updated on new features and fixes.
+## Early Development Notice - 🚨
+Please note that this tool is still in early development.  Things will change,
+and there will likely be bugs along the way.
+
+Star and watch the project to stay updated on development activities.
+
+If you are looking for a more mature tool in this space that is quite
+featureful and supports configuration of custom alerts in YAML, I highly
+recommend taking a look at [glances](https://github.com/nicolargo/glances).
+
 
 ## Summary
 "hi" is a command-line tool designed to monitor and display the status of various services running on a host. 
