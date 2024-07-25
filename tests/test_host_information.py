@@ -31,7 +31,7 @@ def test_hi_config_argv_watch_info_config(capsys):
     
     # set argv for this test
     sys.argv = ['watch', 'info', 'config', 'example.yml']
-    pattern = r"\[\❌\]|\[\✅\]"
+    pattern = r"\[\🔴\]|\[\✅\]"
     
     try:
         host_information.display_checks()
@@ -47,7 +47,7 @@ def test_hi_config_argv_watch_info_config(capsys):
 def test_hi_config_argv_config(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
-    pattern = r"\[\❌\]|\[\✅\]"
+    pattern = r"\[\🔴\]|\[\✅\]"
     
     # set argv for this test
     sys.argv = ['config', 'example.yml']
@@ -66,7 +66,7 @@ def test_hi_config_argv_config(capsys):
 def test_hi_config_argv_info(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
-    pattern = r"\[\❌\]|\[\✅\]"
+    pattern = r"\[\🔴\]|\[\✅\]"
     
     # set argv for this test
     sys.argv = ['info']
@@ -85,7 +85,7 @@ def test_hi_config_argv_info(capsys):
 def test_hi_config_argv_watch_info(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
-    pattern = r"\[\❌\]|\[\✅\]"
+    pattern = r"\[\🔴\]|\[\✅\]"
     
     # set argv for this test
     sys.argv = ['watch', 'info']
@@ -103,7 +103,7 @@ def test_hi_config_argv_watch_info(capsys):
 
 def test_hi_config_argv_defaults(capsys):
     host_information.display_checks()
-    pattern = r"\[\❌\]|\[\✅\]"
+    pattern = r"\[\🔴\]|\[\✅\]"
 
     captured = capsys.readouterr()
     output = captured.out
@@ -126,7 +126,7 @@ def test_hi_output_get_ip_address(capsys):
     print("pass: host_information.get_ip_address() | output confirmed.")
 
 def test_hi_df_bargraph_combind_output(capsys):
-    pattern = r"\[\❌\]|\[\✅\]"
+    pattern = r"\[\🔴\]|\[\✅\]"
     host_information.display_checks()
     df_bargraph.display_bar_graph()
     captured = capsys.readouterr()

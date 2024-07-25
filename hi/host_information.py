@@ -82,19 +82,27 @@ def get_config_yaml(config_yaml):
     return config
 
 def check_record_handler(check, output, indicators):
+    # Get INI defaults
+    fail_icon = config.get('Defaults', 'fail_icon')
+    fail_status = config.get('Defaults', 'fail_status')
+    success_icon = config.get('Defaults', 'success_icon')
+    success_status = config.get('Defaults', 'success_status')
+    info_icon = config.get('Defaults', 'info_icon')
+    stat_threshold = config.get('Defaults', 'stat_threshold')
+
     check_record = {}
     check_record['name'] = check
-    check_record['result'] = 'SUCCESS'
-    check_record['icon'] = '✅' # Default positive indicator
+    check_record['result'] = success_status
+    check_record['icon'] = success_icon # Default positive indicator
     check_record['stat_date_str'] = None
-    threshold_days = 7  # Assuming 7 days threshold for date_check
+    threshold_days = int(stat_threshold)  # Assuming 7 days threshold for date_check
 
     if 'data backup' in check.lower():
         check_record['stat_date_str'] = output.strip().split(' ')[1]
         check_record['stat_date'] = datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d')
         if datetime.now() - check_record['stat_date'] > timedelta(days=threshold_days):
-            check_record['result'] = 'FAIL'
-            check_record['icon'] = '❌'
+            check_record['result'] = fail_status
+            check_record['icon'] = fail_icon
             check_record['status'] = f"Last modified date {check_record['stat_date_str']} is older than {threshold_days} days"
         else:
             check_record['status'] = f"Last modified date {check_record['stat_date_str']} is within {threshold_days} days"
@@ -103,8 +111,8 @@ def check_record_handler(check, output, indicators):
         if re.search("Connected", output.strip()):
             check_record['status'] = f"Status: {output.strip()}"
         else:
-            check_record['result'] = 'FAIL'
-            check_record['icon'] = '❌'
+            check_record['result'] = fail_status
+            check_record['icon'] = fail_icon
             check_record['status'] = f"Status: {output.strip()}"
 
     else:
@@ -121,7 +129,7 @@ def check_record_handler(check, output, indicators):
         except:
             # Exception is caught and dealth with gracefully when
             # indicators are not configured correctly.
-            check_record['status'] = "is running" 
+            check_record['status'] = success_status
 
     return check_record
 
@@ -133,6 +141,13 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     check_record = {}
     output_messages = []
 
+    # Get INI defaults
+    fail_icon = config.get('Defaults', 'fail_icon')
+    fail_status = config.get('Defaults', 'fail_status')
+    success_icon = config.get('Defaults', 'success_icon')
+    success_status = config.get('Defaults', 'success_status')
+    info_icon = config.get('Defaults', 'info_icon')
+
     # The below 'if output:' statement means that the command completed
     # successfully, and 'output' contains any data returned by the executed
     # command.  'check' contains the name of the check in config/checks.yml.
@@ -141,32 +156,32 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
         output_messages.append(f"[{check_record['icon']}] {check}: {check_record['status']}")
 
     else:
-        indicator = '❌'
-        output = "is stopped"
+        indicator = fail_icon
+        output = fail_status
 
         if indicators:
             try:
                 indicator = indicators.get('negative', {}).get('icon', indicator)
                 if 'negative' in indicators and 'status' in indicators['negative']:
-                    output = indicators['negative']['status'] 
+                    output = indicators.get('negative', {}).get('status', fail_status)
 
             except Exception as e:
                 print(f"* Warning: Potential checks file configuration error.")
                 print(f" - Indicator configuration resulted in error.")
                 print(f" - Make sure you have matching postive/negative indicators and indicator icons.")
                 print(f" Using default indicators.")
-                indicator = '❌'
+                indicator = fail_icon
                 
-        output_messages.append(f"[{indicator}] {check} {output}")
+        output_messages.append(f"[{indicator}] {check}: {output}")
         check_record['name'] = check
-        check_record['result'] = 'FAIL'
+        check_record['result'] = output
         check_record['icon'] = indicator
-        check_record['status'] = output
+        check_record['status'] = fail_status
 
 
     # Append info: value if present
     if info:
-        output_messages.append(f"  [🔹] {info}")
+        output_messages.append(f"  [{info_icon}] {info}")
         check_record['info'] = info
 
     # Append sub_checks if present

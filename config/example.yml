@@ -19,13 +19,13 @@ checks:
     indicators:
       positive:
         icon: ✅
-        status: good
+        status:
       negative:
         icon: ❌
-        status: bad
+        status: backup log file not found.
     group: Backup
     command: |
-      stat ~/.backup.log | grep ^Modify
+      stat ~/.logs/.jbl-backup.log | grep ^Modify
   ExpressVPN:
     info: For general privacy and security.
     group: Security
