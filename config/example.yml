@@ -18,11 +18,11 @@ checks:
     info: My custom backup orchestration solution
     indicators:
       positive:
-        status:
-          icon: ✅
+        icon: ✅
+        status: good
       negative:
-        status:
-          icon: ❌
+        icon: ❌
+        status: bad
     group: Backup
     command: |
       stat ~/.backup.log | grep ^Modify
