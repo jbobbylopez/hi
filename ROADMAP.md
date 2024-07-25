@@ -60,10 +60,6 @@ changes may already be in development progress.
           an API for use in another view, like an HTML report.
 
 - Aesthetic Improvements
-    - Address some color bleeding that tends to happen around the report
-      header.  Probably has something to do with how curses background
-      colors are terminated/controlled to fill white-space and across
-      lines.
 
 - Features and Functionality
 
@@ -143,6 +139,11 @@ tools and pipelines.
 
 # Completed Features and Improvements #
 Knocking them down, one at a time..
+
+- [✅] Address some color bleeding that tends to happen around the report
+  header.  Probably has something to do with how curses background
+  colors are terminated/controlled to fill white-space and across
+  lines.
 
 - [✅] Default icons ❌ and ✅ shouldn't be used in the code.  Should be
   pulled from config.ini
