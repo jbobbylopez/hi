@@ -51,8 +51,6 @@ changes may already be in development progress.
 
     - `compile_output_messages()`
         - [🚧] Break this out into multiple functions
-        - [👀] Default icons ❌ and ✅ shouldn't be used in the code.  Should be
-          pulled from config.ini
         - [👀] Backup related concerns should move to separate functions
         - Indicator logic can likely be broken out
     - `display_checks()`
@@ -145,6 +143,9 @@ tools and pipelines.
 
 # Completed Features and Improvements #
 Knocking them down, one at a time..
+
+- [✅] Default icons ❌ and ✅ shouldn't be used in the code.  Should be
+  pulled from config.ini
 
 - [✅] Enable customization of output (colors, formatting of tables).  This
   will help prevent the tool's output from becoming too mundane, and
