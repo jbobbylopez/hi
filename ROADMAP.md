@@ -49,8 +49,6 @@ changes may already be in development progress.
 #### Design Improvements ####
 - Code imporovements - refactoring to increase modularity and maintainability
 
-    - `display_checks()`
-        - [🚧] Break this out into multiple functions
     - API friendly data structures
         - Improve the structure of messages so this data can be exposed in
           an API for use in another view, like an HTML report.
@@ -135,6 +133,9 @@ tools and pipelines.
 
 # Completed Features and Improvements #
 Knocking them down, one at a time..
+
+- `display_checks()`
+    - [✅] Break this out into multiple functions
 
 - `compile_output_messages()`
     - [✅] Break this out into multiple functions

@@ -142,11 +142,6 @@ def check_record_handler(check, output, indicators):
 
     return check_record
 
-
-def core_module_info(check_record):
-    '''
-    '''
-
 def core_module_subchecks(check_record, sub_checks, indicators, output_messages):
     check_record['sub_checks'] = {}
     for sub_check in sub_checks:
@@ -307,6 +302,35 @@ def enable_check_info():
     check_info = 1 in sys.argv or None
     return check_info
 
+def generate_rich_tables(groups, group_statuses, table_colors, num_columns):
+    for i in range(0, len(groups), num_columns):
+        console = Console()
+        table = Table(
+            show_header=True, 
+            header_style=table_colors["header_style"],
+            expand=True, 
+            box=MINIMAL,
+            border_style=table_colors["border_style"],
+            style=table_colors["default_style"]
+        )
+
+        current_groups = groups[i:i + num_columns]
+        for group in current_groups:
+            table.add_column(group, style=table_colors["column_style"], justify="left", no_wrap=True, width=40)
+
+        max_length = max(len(group_statuses[group]) for group in current_groups)
+
+        for j in range(max_length):
+            row = [
+                Text(group_statuses[group][j], style=table_colors['text_style']) 
+                if j < len(group_statuses[group]) 
+                else ""
+                for group in current_groups
+            ]
+            table.add_row(*row)
+
+        console.print(table)
+
 def display_checks():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
@@ -323,7 +347,6 @@ def display_checks():
         info = 'info' in sys.argv
     else:
         info = None
-
 
     # Get hi tool display header styles
     report_colors['header_style'] = "" if config.get('Report', 'header_style') in [None, "None"] else config.get('Report', 'header_style')
@@ -358,32 +381,7 @@ def display_checks():
     table_colors['text_style'] = "" if config.get('Tables', 'text_style') in [None, "None"] else config.get('Tables', 'text_style')
 
     # Generate the tables
-    for i in range(0, len(groups), num_columns):
-        table = Table(
-            show_header=True, 
-            header_style=table_colors["header_style"],
-            expand=True, 
-            box=MINIMAL,
-            border_style=table_colors["border_style"],
-            style=table_colors["default_style"]
-        )
-
-        current_groups = groups[i:i + num_columns]
-        for group in current_groups:
-            table.add_column(group, style=table_colors["column_style"], justify="left", no_wrap=True, width=40)
-
-        max_length = max(len(group_statuses[group]) for group in current_groups)
-
-        for j in range(max_length):
-            row = [
-                Text(group_statuses[group][j], style=table_colors['text_style']) 
-                if j < len(group_statuses[group]) 
-                else ""
-                for group in current_groups
-            ]
-            table.add_row(*row)
-
-        console.print(table)
+    generate_rich_tables(groups, group_statuses, table_colors, num_columns)
 
 def display_hi_report():
     display_checks()  # Call the display_checks function to print the system checks
