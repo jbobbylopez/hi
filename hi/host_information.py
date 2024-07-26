@@ -81,6 +81,20 @@ def get_config_yaml(config_yaml):
         config = yaml.safe_load(file)
     return config
 
+def module_data_backup(check_record, output):
+    stat_threshold = config.get('Defaults', 'stat_threshold')
+    check_record['stat_date_str'] = None
+    threshold_days = int(stat_threshold)  # Assuming 7 days threshold for date_check
+    check_record['stat_date_str'] = output.strip().split(' ')[1]
+    check_record['stat_date'] = datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d')
+    if datetime.now() - check_record['stat_date'] > timedelta(days=threshold_days):
+        check_record['result'] = fail_status
+        check_record['icon'] = fail_icon
+        check_record['status'] = f"Last modified date {check_record['stat_date_str']} is older than {threshold_days} days"
+    else:
+        check_record['status'] = f"Last modified date {check_record['stat_date_str']} is within {threshold_days} days"
+    return check_record
+
 def check_record_handler(check, output, indicators):
     # Get INI defaults
     fail_icon = config.get('Defaults', 'fail_icon')
@@ -88,24 +102,14 @@ def check_record_handler(check, output, indicators):
     success_icon = config.get('Defaults', 'success_icon')
     success_status = config.get('Defaults', 'success_status')
     info_icon = config.get('Defaults', 'info_icon')
-    stat_threshold = config.get('Defaults', 'stat_threshold')
 
     check_record = {}
     check_record['name'] = check
     check_record['result'] = success_status
     check_record['icon'] = success_icon # Default positive indicator
-    check_record['stat_date_str'] = None
-    threshold_days = int(stat_threshold)  # Assuming 7 days threshold for date_check
 
     if 'data backup' in check.lower():
-        check_record['stat_date_str'] = output.strip().split(' ')[1]
-        check_record['stat_date'] = datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d')
-        if datetime.now() - check_record['stat_date'] > timedelta(days=threshold_days):
-            check_record['result'] = fail_status
-            check_record['icon'] = fail_icon
-            check_record['status'] = f"Last modified date {check_record['stat_date_str']} is older than {threshold_days} days"
-        else:
-            check_record['status'] = f"Last modified date {check_record['stat_date_str']} is within {threshold_days} days"
+        check_record = module_data_backup(check_record, output)
 
     elif 'expressvpn' in check.lower():
         if re.search("Connected", output.strip()):

@@ -51,7 +51,6 @@ changes may already be in development progress.
 
     - `compile_output_messages()`
         - [🚧] Break this out into multiple functions
-        - [👀] Backup related concerns should move to separate functions
         - Indicator logic can likely be broken out
     - `display_checks()`
         - [🚧] Break this out into multiple functions
@@ -139,6 +138,8 @@ tools and pipelines.
 
 # Completed Features and Improvements #
 Knocking them down, one at a time..
+
+- [✅] Backup related concerns should move to separate functions
 
 - [✅] Address some color bleeding that tends to happen around the report
   header.  Probably has something to do with how curses background
