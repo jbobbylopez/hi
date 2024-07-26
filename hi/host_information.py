@@ -95,6 +95,16 @@ def module_data_backup(check_record, output):
         check_record['status'] = f"Last modified date {check_record['stat_date_str']} is within {threshold_days} days"
     return check_record
 
+def module_expressvpn(check_record, output):
+    if re.search("Connected", output.strip()):
+        check_record['status'] = f"Status: {output.strip()}"
+    else:
+        check_record['result'] = fail_status
+        check_record['icon'] = fail_icon
+        check_record['status'] = f"Status: {output.strip()}"
+    return check_record
+
+
 def check_record_handler(check, output, indicators):
     # Get INI defaults
     fail_icon = config.get('Defaults', 'fail_icon')
@@ -112,12 +122,7 @@ def check_record_handler(check, output, indicators):
         check_record = module_data_backup(check_record, output)
 
     elif 'expressvpn' in check.lower():
-        if re.search("Connected", output.strip()):
-            check_record['status'] = f"Status: {output.strip()}"
-        else:
-            check_record['result'] = fail_status
-            check_record['icon'] = fail_icon
-            check_record['status'] = f"Status: {output.strip()}"
+        check_record = module_expressvpn(check_record, output)
 
     else:
         if indicators:
