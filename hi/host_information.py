@@ -143,6 +143,47 @@ def check_record_handler(check, output, indicators):
     return check_record
 
 
+def core_module_info(check_record):
+    '''
+    '''
+
+def core_module_subchecks(check_record, sub_checks, indicators, output_messages):
+    check_record['sub_checks'] = {}
+    for sub_check in sub_checks:
+        check_record['sub_checks'][sub_check] = {}
+        indicator = '⚫'
+        status = ""
+        sub_check_indicators = None
+        sub_check_command = sub_checks[sub_check]['command']
+        sub_check_output = check_process(sub_check, sub_check_command).strip()
+
+        if sub_check_output:
+            if 'indicators' in sub_checks[sub_check]:
+                sub_check_indicators = sub_checks[sub_check]['indicators']
+                if 'positive' in sub_check_indicators and 'icon' in sub_check_indicators['positive']:
+                    indicator = sub_check_indicators['positive']['icon']
+                if 'positive' in sub_check_indicators and 'status' in sub_check_indicators['positive']:
+                    sub_check_output = sub_check_indicators['positive']['status'] 
+            output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+            check_record['sub_checks'][sub_check]['icon'] = indicator
+            check_record['sub_checks'][sub_check]['status'] = sub_check_output
+            check_record['sub_checks'][sub_check]['command'] = sub_check_command
+
+        else:
+            if 'indicators' in sub_checks[sub_check]:
+                sub_check_indicators = sub_checks[sub_check]['indicators']
+                if 'negative' in sub_check_indicators and 'icon' in sub_check_indicators['negative']:
+                    indicator = sub_check_indicators['negative']['icon']
+                if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
+                    sub_check_output = sub_check_indicators['negative']['status'] 
+            output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+
+        check_record['sub_checks'][sub_check]['icon'] = indicator
+        check_record['sub_checks'][sub_check]['status'] = sub_check_output
+        check_record['sub_checks'][sub_check]['command'] = sub_check_command
+
+    return check_record
+
 def compile_output_messages(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
     status = ""
     check_indicators = None
@@ -194,41 +235,9 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
         check_record['info'] = info
 
     # Append sub_checks if present
-    # .. this will likely need to be turned into it's own function
     if sub_checks:
-        check_record['sub_checks'] = {}
-        for sub_check in sub_checks:
-            check_record['sub_checks'][sub_check] = {}
-            indicator = '⚫'
-            status = ""
-            sub_check_indicators = None
-            sub_check_command = sub_checks[sub_check]['command']
-            sub_check_output = check_process(sub_check, sub_check_command).strip()
+        check_record = core_module_subchecks(check_record, sub_checks, indicators, output_messages)
 
-            if sub_check_output:
-                if 'indicators' in sub_checks[sub_check]:
-                    sub_check_indicators = sub_checks[sub_check]['indicators']
-                    if 'positive' in sub_check_indicators and 'icon' in sub_check_indicators['positive']:
-                        indicator = sub_check_indicators['positive']['icon']
-                    if 'positive' in sub_check_indicators and 'status' in sub_check_indicators['positive']:
-                        sub_check_output = sub_check_indicators['positive']['status'] 
-                output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
-                check_record['sub_checks'][sub_check]['icon'] = indicator
-                check_record['sub_checks'][sub_check]['status'] = sub_check_output
-                check_record['sub_checks'][sub_check]['command'] = sub_check_command
-
-            else:
-                if 'indicators' in sub_checks[sub_check]:
-                    sub_check_indicators = sub_checks[sub_check]['indicators']
-                    if 'negative' in sub_check_indicators and 'icon' in sub_check_indicators['negative']:
-                        indicator = sub_check_indicators['negative']['icon']
-                    if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
-                        sub_check_output = sub_check_indicators['negative']['status'] 
-                output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
-
-        check_record['sub_checks'][sub_check]['icon'] = indicator
-        check_record['sub_checks'][sub_check]['status'] = sub_check_output
-        check_record['sub_checks'][sub_check]['command'] = sub_check_command
 
     current_state = {check_record['name']:check_record['result'] }
     check_system_state(current_state, check_record)

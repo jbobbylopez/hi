@@ -49,9 +49,6 @@ changes may already be in development progress.
 #### Design Improvements ####
 - Code imporovements - refactoring to increase modularity and maintainability
 
-    - `compile_output_messages()`
-        - [🚧] Break this out into multiple functions
-        - Indicator logic can likely be broken out
     - `display_checks()`
         - [🚧] Break this out into multiple functions
     - API friendly data structures
@@ -138,6 +135,10 @@ tools and pipelines.
 
 # Completed Features and Improvements #
 Knocking them down, one at a time..
+
+- `compile_output_messages()`
+    - [✅] Break this out into multiple functions
+    - [✅] Indicator logic can likely be broken out
 
 - [✅] Backup related concerns should move to separate functions
 
