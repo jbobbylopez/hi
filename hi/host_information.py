@@ -96,8 +96,17 @@ def module_data_backup(check_record, output):
     return check_record
 
 def module_expressvpn(check_record, output):
+    # Get INI defaults
+    fail_icon = config.get('Defaults', 'fail_icon')
+    fail_status = config.get('Defaults', 'fail_status')
+    success_icon = config.get('Defaults', 'success_icon')
+    success_status = config.get('Defaults', 'success_status')
+    info_icon = config.get('Defaults', 'info_icon')
+
     if re.search("Connected", output.strip()):
+        check_record['result'] = output.strip()
         check_record['status'] = f"Status: {output.strip()}"
+        check_record['icon'] = success_icon
     else:
         check_record['result'] = fail_status
         check_record['icon'] = fail_icon
