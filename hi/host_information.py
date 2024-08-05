@@ -81,7 +81,7 @@ def get_config_yaml(config_yaml):
         config = yaml.safe_load(file)
     return config
 
-def module_data_backup(check_record, output):
+def module_data_backup(check_record, output, fail_icon, fail_status):
     stat_threshold = config.get('Defaults', 'stat_threshold')
     check_record['stat_date_str'] = None
     threshold_days = int(stat_threshold)  # Assuming 7 days threshold for date_check
@@ -128,7 +128,7 @@ def check_record_handler(check, output, indicators):
     check_record['icon'] = success_icon # Default positive indicator
 
     if 'data backup' in check.lower():
-        check_record = module_data_backup(check_record, output)
+        check_record = module_data_backup(check_record, output, fail_icon, fail_status)
 
     elif 'expressvpn' in check.lower():
         check_record = module_expressvpn(check_record, output)
