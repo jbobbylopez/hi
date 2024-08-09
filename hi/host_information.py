@@ -1,6 +1,7 @@
 import sys
 import time
 import subprocess
+import daemon
 import socket
 import re
 import os
@@ -339,6 +340,38 @@ def generate_rich_tables(groups, group_statuses, table_colors, num_columns):
             table.add_row(*row)
 
         console.print(table)
+
+def hi_daemon(interval=2):
+    ''' Hi Daemon '''
+    if 'daemon' in sys.argv:
+        try:
+            with daemon.DaemonContext():
+                hi_daemon_process()
+        except KeyboardInterrupt:
+            console.print("\n[hi daemon stopped.]")
+        finally:
+            print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
+
+def hi_daemon_process():
+    """
+    Generate daemon output
+    """
+    local_ip_result = get_ip_address()
+    hostname_result = get_hostname_address()
+    script_dir = get_script_dir()
+    hi_dir     = os.path.dirname(script_dir)
+    groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
+
+    if enable_check_info:
+        info = 'info' in sys.argv
+    else:
+        info = None
+
+    while True:
+        time.sleep(interval)  # Wait for the specified interval before updating again
+
+        # Get all status messages for each target group in 'config/groups.yaml'
+        group_statuses = {group: check_engine_yaml(group, info) for group in groups}
 
 def display_checks():
     """
