@@ -1,3 +1,6 @@
+"""
+'hi' - Host Information: Main Program.
+"""
 import sys
 import time
 import subprocess
@@ -7,20 +10,25 @@ import re
 import os
 import yaml
 import configparser
-import check_ubuntu_eol
-import df_bargraph
+
 from datetime import datetime, timedelta
 from rich.console import Console
 from rich.table import Table
 from rich.box import MINIMAL
 from rich.align import Align
 from rich.text import Text
+
 import logging
 import logging.handlers
 import queue
 import json
 
+# 'hi' internal dependencies
+import check_ubuntu_eol
+import df_bargraph
 
+
+# DEFAULT VARIABLES
 STATE_FILE_PATH = 'state.json'
 STATE = {}
 LOGGING_ENABLED = False
@@ -28,11 +36,6 @@ LOGGING_ENABLED = False
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
     return os.path.dirname(os.path.abspath(__file__))
-
-# Read in 'config/config.ini'
-script_dir = get_script_dir()
-config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(script_dir), 'config/config.ini'))
 
 def center_text(text):
     """
@@ -312,7 +315,7 @@ def enable_check_info():
     check_info = 1 in sys.argv or None
     return check_info
 
-def generate_rich_tables(groups, group_statuses, table_colors, num_columns):
+def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
     for i in range(0, len(groups), num_columns):
         console = Console()
         table = Table(
@@ -328,12 +331,12 @@ def generate_rich_tables(groups, group_statuses, table_colors, num_columns):
         for group in current_groups:
             table.add_column(group, style=table_colors["column_style"], justify="left", no_wrap=True, width=40)
 
-        max_length = max(len(group_statuses[group]) for group in current_groups)
+        max_length = max(len(check_results_data[group]) for group in current_groups)
 
         for j in range(max_length):
             row = [
-                Text(group_statuses[group][j], style=table_colors['text_style']) 
-                if j < len(group_statuses[group]) 
+                Text(check_results_data[group][j], style=table_colors['text_style']) 
+                if j < len(check_results_data[group]) 
                 else ""
                 for group in current_groups
             ]
@@ -344,8 +347,10 @@ def generate_rich_tables(groups, group_statuses, table_colors, num_columns):
 def hi_daemon(interval=2):
     ''' Hi Daemon '''
     if 'daemon' in sys.argv:
+        log_state_change("ARGV:daemon", "missing", "detected")
         try:
             with daemon.DaemonContext():
+                log_state_change("DAEMON", "disabled", "enbled")
                 hi_daemon_process()
         except KeyboardInterrupt:
             console.print("\n[hi daemon stopped.]")
@@ -356,11 +361,13 @@ def hi_daemon_process():
     """
     Generate daemon output
     """
+    console = Console()
     local_ip_result = get_ip_address()
     hostname_result = get_hostname_address()
     script_dir = get_script_dir()
     hi_dir     = os.path.dirname(script_dir)
     groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
+    check_results_data = None
 
     if enable_check_info:
         info = 'info' in sys.argv
@@ -371,7 +378,15 @@ def hi_daemon_process():
         time.sleep(interval)  # Wait for the specified interval before updating again
 
         # Get all status messages for each target group in 'config/groups.yaml'
-        group_statuses = {group: check_engine_yaml(group, info) for group in groups}
+        check_results_data = get_check_results_data(group, info)
+    console.print("'hi' daemon running..")
+    return check_results_data
+
+def get_check_results_data(groups, info):
+    ''' This function aggregates all the check results into a dict, and
+    returns that data for parsing and display output processing '''
+    check_results_data = {group: check_engine_yaml(group, info) for group in groups}
+    return check_results_data
 
 def display_checks():
     """
@@ -411,7 +426,7 @@ def display_checks():
     console.print(' ' * (console.width - len(header_text)), style=report_colors['ip_style'])
 
     # Get all status messages for each target group in 'config/groups.yaml'
-    group_statuses = {group: check_engine_yaml(group, info) for group in groups}
+    check_results_data = get_check_results_data(groups, info)
 
     # Rich table output
     # read number_of_columns per table specified in config.ini
@@ -423,7 +438,7 @@ def display_checks():
     table_colors['text_style'] = "" if config.get('Tables', 'text_style') in [None, "None"] else config.get('Tables', 'text_style')
 
     # Generate the tables
-    generate_rich_tables(groups, group_statuses, table_colors, num_columns)
+    generate_rich_tables(groups, check_results_data, table_colors, num_columns)
 
 def display_hi_report():
     display_checks()  # Call the display_checks function to print the system checks
@@ -535,6 +550,11 @@ def check_system_state(current_state, check_record):
                 # Update the state file with the new state
                 write_state(last_known_state)
 
+# Read in 'config/config.ini'
+script_dir = get_script_dir()
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(script_dir), 'config/config.ini'))
+
 # Configure logging if logging is enabled
 try:
     LOGGING_ENABLED = config.get('Logging', 'enable_logging')
@@ -549,5 +569,7 @@ except Exception as e:
 console = Console()
 if 'watch' in sys.argv:
     hi_watch()
+elif 'daemon' in sys.argv:
+    hi_daemon()
 else:
     display_hi_report()
