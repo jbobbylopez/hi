@@ -5,11 +5,13 @@ import sys
 import time
 import subprocess
 import daemon
+import daemon.pidfile
 import socket
 import re
 import os
 import yaml
 import configparser
+import lockfile
 
 from datetime import datetime, timedelta
 from rich.console import Console
@@ -26,7 +28,6 @@ import json
 # 'hi' internal dependencies
 import check_ubuntu_eol
 import df_bargraph
-
 
 # DEFAULT VARIABLES
 STATE_FILE_PATH = 'state.json'
@@ -247,7 +248,9 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
         check_record = core_module_subchecks(check_record, sub_checks, indicators, output_messages)
 
 
-    current_state = {check_record['name']:check_record['result'] }
+    current_state = {check_record['name']:check_record['result']}
+    #wip_state = {check_record['name']:{'result':check_record['result'],'details':check_record}}
+    #console.print(f"{wip_state}")
     check_system_state(current_state, check_record)
 
     final_output = "\n".join(output_messages)
@@ -344,24 +347,50 @@ def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
 
         console.print(table)
 
-def hi_daemon(interval=2):
+def hi_daemon():
     ''' Hi Daemon '''
+    console.print("starting 'hi' daemon..")
     if 'daemon' in sys.argv:
-        log_state_change("ARGV:daemon", "missing", "detected")
+        pidfile = '/tmp/hi_daemon.pid'
         try:
-            with daemon.DaemonContext():
-                log_state_change("DAEMON", "disabled", "enbled")
+            log_state_change("DAEMON:init", "offline", "starting..")
+            console.print(f"hi daemon started.")
+            with daemon.DaemonContext(
+                working_directory='.',  # Ensure this is a valid directory for your process
+                umask=0o022,
+                pidfile=daemon.pidfile.PIDLockFile(pidfile),
+                stderr=sys.stderr,  # Redirect stderr to catch daemon errors
+                stdout=sys.stdout   # Redirect stdout to catch daemon logs
+            ):
                 hi_daemon_process()
-        except KeyboardInterrupt:
-            console.print("\n[hi daemon stopped.]")
+        except PermissionError as e:
+            console.print(f"\n[Permission error: {e}]")
+            logging.debug(f"Permission error: {e}")
+        except FileNotFoundError as e:
+            console.print(f"\n[File not found: {e}]")
+            logging.debug(f"File not found: {e}")
+        except Exception as e:
+            console.print(f"\n[Other error encountered: {e}]")
+            logging.debug(f"Other error encountered: {e}")
         finally:
-            print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
+            log_state_change("DAEMON:init", "active", "shutting down")
+            if os.path.exists(pidfile):  # Cleanup the PID file
+                os.remove(pidfile)
+                logging.debug("PID file removed.")
 
-def hi_daemon_process():
+def flush_loggers():
+    """Flush all loggers to ensure all messages are written out."""
+    for handler in logging.getLogger().handlers:
+        handler.flush()
+
+def hi_daemon_process(interval=2):
     """
-    Generate daemon output
+    Main daemon process handler
     """
-    console = Console()
+    configure_logging(ini_log_file)
+    console.print(f"hi_daemon_process() running..")
+    log_state_change("DAEMON:init", "started", "running..")
+
     local_ip_result = get_ip_address()
     hostname_result = get_hostname_address()
     script_dir = get_script_dir()
@@ -369,6 +398,7 @@ def hi_daemon_process():
     groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
     check_results_data = None
 
+    log_state_change("DAEMON", "started", "running...")
     if enable_check_info:
         info = 'info' in sys.argv
     else:
@@ -376,17 +406,22 @@ def hi_daemon_process():
 
     while True:
         time.sleep(interval)  # Wait for the specified interval before updating again
-
+        # tick
+        log_state_change("DAEMON", "tick", "tick..")
         # Get all status messages for each target group in 'config/groups.yaml'
-        check_results_data = get_check_results_data(group, info)
-    console.print("'hi' daemon running..")
-    return check_results_data
+        check_results_data = get_check_results_data(groups, info)
+        #console.print(f"{check_results_data}")
 
 def get_check_results_data(groups, info):
     ''' This function aggregates all the check results into a dict, and
     returns that data for parsing and display output processing '''
-    check_results_data = {group: check_engine_yaml(group, info) for group in groups}
-    return check_results_data
+
+    if 'daemon' in sys.argv:
+        check_results_data = {group: check_engine_yaml(group, info) for group in groups}
+        write_daemon_results(check_results_data)
+    else:
+        check_results_data = read_daemon_results()
+        return check_results_data
 
 def display_checks():
     """
@@ -470,7 +505,7 @@ def hi_watch(interval=2):
                 display_hi_watch_report()
         except KeyboardInterrupt:
             console.clear()
-            console.print("\n[hi: continuous monitoring stopped.]")
+            console.print('hi: continuous monitoring stopped.')
         finally:
             print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
 
@@ -516,6 +551,12 @@ def log_state_change(check_name, previous_state, new_state):
         }
     )
 
+def read_daemon_results():
+    if not os.path.isfile("daemon_results.txt"):
+        return {}
+    with open("daemon_results.txt", 'r') as f:
+        return json.load(f)
+
 def read_initial_state():
     if not os.path.isfile(STATE_FILE_PATH):
         return {}
@@ -528,12 +569,20 @@ def state(state):
         STATE = read_initial_state()
     return STATE
 
+def write_daemon_results(data):
+    try:
+        with open("daemon_results.txt", 'w') as f:
+            json.dump(data, f)
+    except IOError as e:
+        print(f"An error occurred while writing to the file: {e}")
+
 def write_state(state):
     with open(STATE_FILE_PATH, 'w') as f:
         json.dump(state, f, indent=4)
 
 def check_system_state(current_state, check_record):
     # Dictionary to store the initial state
+    #console.print(f"{STATE}")
     last_known_state = state(STATE)
 
     # Compare current state with last known state
