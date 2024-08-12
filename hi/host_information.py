@@ -338,7 +338,7 @@ def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
                 all_group_statuses[group].append(f"  [{info_icon}] {info}")
             if sub_checks:
                 for sub_check in sub_checks:
-                    all_group_statuses[group].append(f"    [{sub_checks[sub_check]['icon']}] {sub_checks[sub_check]['status']} {sub_checks[sub_check]['output']}")
+                    all_group_statuses[group].append(f"    [{sub_checks[sub_check]['icon']}] {sub_check}:{sub_checks[sub_check]['status']} {sub_checks[sub_check]['output']}")
     
     # Create tables
     for i in range(0, len(groups), num_columns):
