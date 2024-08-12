@@ -314,8 +314,11 @@ def check_engine_yaml(check_type, verbose=False):
 
 
 def enable_check_info():
-    check_info = false
-    check_info = 1 in sys.argv and 'info' in sys.argv or false
+    check_info = None
+    if 'info' in sys.argv:
+        check_info = 1
+    else:
+        check_info = None
     return check_info
 
 def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
@@ -334,11 +337,11 @@ def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
 
         if group in groups:
             all_group_statuses[group].append(status)
-            if enable_check_info and value['info']:
+            if enable_check_info() and value['info']:
                 all_group_statuses[group].append(f"  [{info_icon}] {info}")
             if sub_checks:
                 for sub_check in sub_checks:
-                    all_group_statuses[group].append(f"    [{sub_checks[sub_check]['icon']}] {sub_check}:{sub_checks[sub_check]['status']} {sub_checks[sub_check]['output']}")
+                    all_group_statuses[group].append(f"    [{sub_checks[sub_check]['icon']}] {sub_check}: {sub_checks[sub_check]['status']} {sub_checks[sub_check]['output']}")
     
     # Create tables
     for i in range(0, len(groups), num_columns):
@@ -423,7 +426,7 @@ def hi_daemon_process(interval=2):
     check_results_data = None
 
     log_state_change("DAEMON", "started", "running...")
-    if enable_check_info:
+    if enable_check_info():
         info = 'info' in sys.argv
     else:
         info = None
@@ -633,21 +636,6 @@ def check_system_state(current_state, check_record):
                 console.print(f"\n[An error occurred: {e}]")
                 console.print(f"Exception in daemon context: %s", str(e))
                 console.print(f"Traceback: %s", traceback.format_exc())
-
-    '''
-    for check_name, new_state in current_state.items():
-        if check_name == check_record['name']:
-            previous_state = last_known_state.get(check_name)
-            if previous_state != new_state:
-                last_known_state[check_name] = new_state
-
-                # log state change
-                if LOGGING_ENABLED:
-                    log_state_change(check_name, previous_state, new_state)
-
-                # Update the state file with the new state
-                write_state(last_known_state)
-    '''
 
 # Read in 'config/config.ini'
 script_dir = get_script_dir()
