@@ -174,11 +174,7 @@ def core_module_subchecks(check_record, sub_checks, indicators, output_messages)
                 if 'positive' in sub_check_indicators and 'icon' in sub_check_indicators['positive']:
                     indicator = sub_check_indicators['positive']['icon']
                 if 'positive' in sub_check_indicators and 'status' in sub_check_indicators['positive']:
-                    sub_check_output = sub_check_indicators['positive']['status'] 
-            output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
-            check_record['sub_checks'][sub_check]['icon'] = indicator
-            check_record['sub_checks'][sub_check]['status'] = sub_check_output
-            check_record['sub_checks'][sub_check]['command'] = sub_check_command
+                    status = sub_check_indicators['positive']['status'] 
 
         else:
             if 'indicators' in sub_checks[sub_check]:
@@ -186,11 +182,12 @@ def core_module_subchecks(check_record, sub_checks, indicators, output_messages)
                 if 'negative' in sub_check_indicators and 'icon' in sub_check_indicators['negative']:
                     indicator = sub_check_indicators['negative']['icon']
                 if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
-                    sub_check_output = sub_check_indicators['negative']['status'] 
-            output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+                    status = sub_check_indicators['negative']['status'] 
 
+        output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
         check_record['sub_checks'][sub_check]['icon'] = indicator
-        check_record['sub_checks'][sub_check]['status'] = sub_check_output
+        check_record['sub_checks'][sub_check]['status'] = status
+        check_record['sub_checks'][sub_check]['output'] = sub_check_output
         check_record['sub_checks'][sub_check]['command'] = sub_check_command
 
     return check_record
@@ -317,19 +314,31 @@ def check_engine_yaml(check_type, verbose=False):
 
 
 def enable_check_info():
-    check_info = 0
-    check_info = 1 in sys.argv or None
+    check_info = false
+    check_info = 1 in sys.argv and 'info' in sys.argv or false
     return check_info
 
 def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
+    info_icon = config.get('Defaults', 'info_icon')
     all_group_statuses = {group: [] for group in groups}
     
     # Organize data by groups
     for key, value in check_results_data.items():
         group = value.get('group', 'No group')
-        info = f"{value['icon']} {value['name']} - {value['status']}"
+        status = f"{value['icon']} {value['name']} - {value['status']}"
+        info = f"{value['info']}"
+
+        sub_checks = None
+        if 'sub_checks' in value:
+            sub_checks = value['sub_checks']
+
         if group in groups:
-            all_group_statuses[group].append(info)
+            all_group_statuses[group].append(status)
+            if enable_check_info and value['info']:
+                all_group_statuses[group].append(f"  [{info_icon}] {info}")
+            if sub_checks:
+                for sub_check in sub_checks:
+                    all_group_statuses[group].append(f"    [{sub_checks[sub_check]['icon']}] {sub_checks[sub_check]['status']} {sub_checks[sub_check]['output']}")
     
     # Create tables
     for i in range(0, len(groups), num_columns):
