@@ -6,6 +6,7 @@ import time
 import subprocess
 import daemon
 import daemon.pidfile
+import traceback
 import socket
 import re
 import os
@@ -91,8 +92,8 @@ def module_data_backup(check_record, output, fail_icon, fail_status):
     check_record['stat_date_str'] = None
     threshold_days = int(stat_threshold)  # Assuming 7 days threshold for date_check
     check_record['stat_date_str'] = output.strip().split(' ')[1]
-    check_record['stat_date'] = datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d')
-    if datetime.now() - check_record['stat_date'] > timedelta(days=threshold_days):
+    check_record['stat_date'] = str(datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d'))
+    if datetime.now() - datetime.strptime(check_record['stat_date'], "%Y-%m-%d %H:%M:%S") > timedelta(days=threshold_days):
         check_record['result'] = fail_status
         check_record['icon'] = fail_icon
         check_record['status'] = f"Last modified date {check_record['stat_date_str']} is older than {threshold_days} days"
@@ -119,7 +120,7 @@ def module_expressvpn(check_record, output):
     return check_record
 
 
-def check_record_handler(check, output, indicators):
+def check_record_handler(check, group, output, indicators):
     # Get INI defaults
     fail_icon = config.get('Defaults', 'fail_icon')
     fail_status = config.get('Defaults', 'fail_status')
@@ -129,6 +130,7 @@ def check_record_handler(check, output, indicators):
 
     check_record = {}
     check_record['name'] = check
+    check_record['group'] = group
     check_record['result'] = success_status
     check_record['icon'] = success_icon # Default positive indicator
 
@@ -211,7 +213,7 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     # successfully, and 'output' contains any data returned by the executed
     # command.  'check' contains the name of the check in config/checks.yml.
     if cmd_output:
-        check_record = check_record_handler(check, cmd_output, indicators)
+        check_record = check_record_handler(check, group, cmd_output, indicators)
         output_messages.append(f"[{check_record['icon']}] {check}: {check_record['status']}")
 
     else:
@@ -233,15 +235,16 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                 
         output_messages.append(f"[{indicator}] {check}: {output}")
         check_record['name'] = check
+        check_record['group'] = group
         check_record['result'] = output
         check_record['icon'] = indicator
         check_record['status'] = fail_status
 
 
     # Append info: value if present
-    if info:
-        output_messages.append(f"  [{info_icon}] {info}")
-        check_record['info'] = info
+    #if info:
+    output_messages.append(f"  [{info_icon}] {info}")
+    check_record['info'] = info
 
     # Append sub_checks if present
     if sub_checks:
@@ -319,6 +322,16 @@ def enable_check_info():
     return check_info
 
 def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
+    all_group_statuses = {group: [] for group in groups}
+    
+    # Organize data by groups
+    for key, value in check_results_data.items():
+        group = value.get('group', 'No group')
+        info = f"{value['icon']} {value['name']} - {value['status']}"
+        if group in groups:
+            all_group_statuses[group].append(info)
+    
+    # Create tables
     for i in range(0, len(groups), num_columns):
         console = Console()
         table = Table(
@@ -329,22 +342,23 @@ def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
             border_style=table_colors["border_style"],
             style=table_colors["default_style"]
         )
-
+        
         current_groups = groups[i:i + num_columns]
         for group in current_groups:
             table.add_column(group, style=table_colors["column_style"], justify="left", no_wrap=True, width=40)
-
-        max_length = max(len(check_results_data[group]) for group in current_groups)
-
+        
+        max_length = max(len(all_group_statuses[group]) for group in current_groups)
+        
         for j in range(max_length):
             row = [
-                Text(check_results_data[group][j], style=table_colors['text_style']) 
-                if j < len(check_results_data[group]) 
+                #Text(f"hello! {max_length}/{j} - {len(all_group_statuses[group])}")
+                Text(all_group_statuses[group][j], style=table_colors['text_style']) 
+                if j < len(all_group_statuses[group]) 
                 else ""
                 for group in current_groups
             ]
             table.add_row(*row)
-
+        
         console.print(table)
 
 def hi_daemon():
@@ -370,8 +384,9 @@ def hi_daemon():
             console.print(f"\n[File not found: {e}]")
             logging.debug(f"File not found: {e}")
         except Exception as e:
-            console.print(f"\n[Other error encountered: {e}]")
-            logging.debug(f"Other error encountered: {e}")
+            console.print(f"\n[An error occurred: {e}]")
+            console.print(f"Exception in daemon context: %s", str(e))
+            console.print(f"Traceback: %s", traceback.format_exc())
         finally:
             log_state_change("DAEMON:init", "active", "shutting down")
             if os.path.exists(pidfile):  # Cleanup the PID file
@@ -407,7 +422,8 @@ def hi_daemon_process(interval=2):
     while True:
         time.sleep(interval)  # Wait for the specified interval before updating again
         # tick
-        log_state_change("DAEMON", "tick", "tick..")
+        #log_state_change("DAEMON", "tick", "tick..")
+
         # Get all status messages for each target group in 'config/groups.yaml'
         check_results_data = get_check_results_data(groups, info)
         #console.print(f"{check_results_data}")
@@ -417,6 +433,7 @@ def get_check_results_data(groups, info):
     returns that data for parsing and display output processing '''
 
     if 'daemon' in sys.argv:
+        info = "info"
         check_results_data = {group: check_engine_yaml(group, info) for group in groups}
         write_daemon_results(check_results_data)
     else:
@@ -552,9 +569,10 @@ def log_state_change(check_name, previous_state, new_state):
     )
 
 def read_daemon_results():
-    if not os.path.isfile("daemon_results.txt"):
+    #if not os.path.isfile("daemon_results.txt"):
+    if not os.path.isfile(STATE_FILE_PATH):
         return {}
-    with open("daemon_results.txt", 'r') as f:
+    with open(STATE_FILE_PATH, 'r') as f:
         return json.load(f)
 
 def read_initial_state():
@@ -565,9 +583,11 @@ def read_initial_state():
 
 def state(state):
     if state == {}:
-        global STATE
-        STATE = read_initial_state()
-    return STATE
+        try:
+            state = read_initial_state()
+        except Exception as e:
+            console.print(f"Exception {e}")
+    return state
 
 def write_daemon_results(data):
     try:
@@ -584,8 +604,28 @@ def check_system_state(current_state, check_record):
     # Dictionary to store the initial state
     #console.print(f"{STATE}")
     last_known_state = state(STATE)
+    previous_state = None
 
     # Compare current state with last known state
+    for check_name, new_state in current_state.items():
+        if check_name == check_record['name']:
+            try:
+                last_known_state[check_name] = check_record
+                previous_state = last_known_state.get(check_name)
+                if previous_state:
+                    #console.print(f"previous state: {previous_state}")
+                    if previous_state['result'] != new_state:
+                        if LOGGING_ENABLED:
+                            log_state_change(check_name, previous_state, new_state)
+
+                # Update the state file with the new state
+                write_state(last_known_state)
+            except Exception as e:
+                console.print(f"\n[An error occurred: {e}]")
+                console.print(f"Exception in daemon context: %s", str(e))
+                console.print(f"Traceback: %s", traceback.format_exc())
+
+    '''
     for check_name, new_state in current_state.items():
         if check_name == check_record['name']:
             previous_state = last_known_state.get(check_name)
@@ -598,6 +638,7 @@ def check_system_state(current_state, check_record):
 
                 # Update the state file with the new state
                 write_state(last_known_state)
+    '''
 
 # Read in 'config/config.ini'
 script_dir = get_script_dir()
