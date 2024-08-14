@@ -27,7 +27,7 @@ import queue
 import json
 
 # 'hi' internal dependencies
-import check_ubuntu_eol
+import check_os_eol
 import df_bargraph
 
 # DEFAULT VARIABLES
@@ -517,7 +517,7 @@ def display_checks():
 
 def display_hi_report():
     display_checks()  # Call the display_checks function to print the system checks
-    check_ubuntu_eol.main()
+    check_os_eol.main()
     df_bargraph.display_bar_graph()
 
 
