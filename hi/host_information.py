@@ -35,15 +35,13 @@ STATE_FILE_PATH = 'state.json'
 STATE = {}
 LOGGING_ENABLED = False
 
+""" Utilities """
+"""
+Small / uncategorized tools and utilties that support the program functionality.
+"""
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
     return os.path.dirname(os.path.abspath(__file__))
-
-def center_text(text):
-    """
-    Center the given text based on the terminal width using Rich.
-    """
-    return Align.center(text)
 
 def get_ip_address():
     result = {
@@ -87,6 +85,18 @@ def get_config_yaml(config_yaml):
         config = yaml.safe_load(file)
     return config
 
+def flush_loggers():
+    """Flush all loggers to ensure all messages are written out."""
+    for handler in logging.getLogger().handlers:
+        handler.flush()
+
+
+
+""" Modules """
+"""
+Modules to the main 'hi' program, which perform specific custom functions.
+Modules are specific to various defined checks, like ExpressVPN, or Data Backups.
+"""
 def module_data_backup(check_record, output, fail_icon, fail_status):
     stat_threshold = config.get('Defaults', 'stat_threshold')
     check_record['stat_date_str'] = None
@@ -120,6 +130,10 @@ def module_expressvpn(check_record, output):
     return check_record
 
 
+""" Check Processors """
+"""
+Various filters and processors of checks defined.
+"""
 def check_record_handler(check, group, output, indicators):
     # Get INI defaults
     fail_icon = config.get('Defaults', 'fail_icon')
@@ -254,7 +268,23 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     final_output = "\n".join(output_messages)
     return final_output
 
+def get_check_results_data(groups, info):
+    ''' This function aggregates all the check results into a dict, and
+    returns that data for parsing and display output processing '''
 
+    if 'daemon' in sys.argv:
+        info = "info"
+        check_results_data = {group: check_engine_yaml(group, info) for group in groups}
+        write_daemon_results(check_results_data)
+    else:
+        check_results_data = read_daemon_results()
+        return check_results_data
+
+
+""" YAML Processors """
+"""
+Various YAML file and check processors
+"""
 def check_argv_config_yaml_file():
     yml_file_path = None
     has_yml_file = None
@@ -310,7 +340,6 @@ def check_engine_yaml(check_type, verbose=False):
 
     return group_output
 
-
 def enable_check_info():
     check_info = None
     if 'info' in sys.argv:
@@ -318,6 +347,17 @@ def enable_check_info():
     else:
         check_info = None
     return check_info
+
+
+""" 'rich' terminal control and display """
+"""
+Various functions that support terminal output display control.
+"""
+def center_text(text):
+    """
+    Center the given text based on the terminal width using Rich.
+    """
+    return Align.center(text)
 
 def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
     info_icon = config.get('Defaults', 'info_icon')
@@ -371,98 +411,6 @@ def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
         
         console.print(table)
 
-def hi_daemon():
-    ''' Hi Daemon '''
-    '''
-    This function sets up the daemon context (server context) of the the program.
-
-    This allows the application to run headless (without the need for GUI or command-line).
-
-    The application would run as a daemon in the background, and would publish state
-    information that could be prased by the hi command line client (client context).
-    '''
-    console.print("starting 'hi' daemon..")
-    if 'daemon' in sys.argv:
-        pidfile = '/tmp/hi_daemon.pid'
-        try:
-            log_state_change("DAEMON:init", "offline", "starting..")
-            console.print(f"hi daemon started.")
-            with daemon.DaemonContext(
-                working_directory='.',  # Ensure this is a valid directory for your process
-                umask=0o022,
-                pidfile=daemon.pidfile.PIDLockFile(pidfile),
-                stderr=sys.stderr,  # Redirect stderr to catch daemon errors
-                stdout=sys.stdout   # Redirect stdout to catch daemon logs
-            ):
-                hi_daemon_process()
-        except PermissionError as e:
-            console.print(f"\n[Permission error: {e}]")
-            logging.debug(f"Permission error: {e}")
-        except FileNotFoundError as e:
-            console.print(f"\n[File not found: {e}]")
-            logging.debug(f"File not found: {e}")
-        except Exception as e:
-            console.print(f"\n[An error occurred: {e}]")
-            console.print(f"Exception in daemon context: %s", str(e))
-            console.print(f"Traceback: %s", traceback.format_exc())
-        finally:
-            log_state_change("DAEMON:init", "active", "shutting down")
-            if os.path.exists(pidfile):  # Cleanup the PID file
-                os.remove(pidfile)
-                logging.debug("PID file removed.")
-
-def flush_loggers():
-    """Flush all loggers to ensure all messages are written out."""
-    for handler in logging.getLogger().handlers:
-        handler.flush()
-
-def hi_daemon_process(interval=2):
-    """
-    Main daemon process handler
-    
-    This function calls get_check_results_data() function which
-    will either trigger a new call to check_engine_yaml() to generate
-    a new list of check resutls (server context), or it call read_daemon_results() to
-    read current state information (client context).
-
-    This function accepts the 'interval' argument which controls the frequency
-    of check execution and state update.
-    """
-    configure_logging(ini_log_file)
-    console.print(f"hi_daemon_process() running..")
-    log_state_change("DAEMON:init", "started", "running..")
-
-    local_ip_result = get_ip_address()
-    hostname_result = get_hostname_address()
-    script_dir = get_script_dir()
-    hi_dir     = os.path.dirname(script_dir)
-    groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
-    check_results_data = None
-
-    log_state_change("DAEMON", "started", "running...")
-    if enable_check_info():
-        info = 'info' in sys.argv
-    else:
-        info = None
-
-    while True:
-        time.sleep(interval)  # Wait for the specified interval before updating again
-
-        # Get all status messages for each target group in 'config/groups.yaml'
-        check_results_data = get_check_results_data(groups, info)
-
-def get_check_results_data(groups, info):
-    ''' This function aggregates all the check results into a dict, and
-    returns that data for parsing and display output processing '''
-
-    if 'daemon' in sys.argv:
-        info = "info"
-        check_results_data = {group: check_engine_yaml(group, info) for group in groups}
-        write_daemon_results(check_results_data)
-    else:
-        check_results_data = read_daemon_results()
-        return check_results_data
-
 def display_checks():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
@@ -515,18 +463,150 @@ def display_checks():
     # Generate the tables
     generate_rich_tables(groups, check_results_data, table_colors, num_columns)
 
-def display_hi_report():
-    display_checks()  # Call the display_checks function to print the system checks
-    check_os_eol.main()
-    df_bargraph.display_bar_graph()
 
 
-def display_hi_watch_report():
-    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
-    display_hi_report()
-    console.print(center_text("[🟢] watching.. (ctrl-c to quit)"), style="bold green")
-    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
+""" Daemon controls """
+"""
+Functions that support daemon initialization and functionality
+"""
+def hi_daemon():
+    ''' Hi Daemon '''
+    '''
+    This function sets up the daemon context (server context) of the the program.
 
+    This allows the application to run headless (without the need for GUI or command-line).
+
+    The application would run as a daemon in the background, and would publish state
+    information that could be prased by the hi command line client (client context).
+    '''
+    console.print("starting 'hi' daemon..")
+    if 'daemon' in sys.argv:
+        pidfile = '/tmp/hi_daemon.pid'
+        try:
+            log_state_change("DAEMON:init", "offline", "starting..")
+            console.print(f"hi daemon started.")
+            with daemon.DaemonContext(
+                working_directory='.',  # Ensure this is a valid directory for your process
+                umask=0o022,
+                pidfile=daemon.pidfile.PIDLockFile(pidfile),
+                stderr=sys.stderr,  # Redirect stderr to catch daemon errors
+                stdout=sys.stdout   # Redirect stdout to catch daemon logs
+            ):
+                hi_daemon_process()
+        except PermissionError as e:
+            console.print(f"\n[Permission error: {e}]")
+            logging.debug(f"Permission error: {e}")
+        except FileNotFoundError as e:
+            console.print(f"\n[File not found: {e}]")
+            logging.debug(f"File not found: {e}")
+        except Exception as e:
+            console.print(f"\n[An error occurred: {e}]")
+            console.print(f"Exception in daemon context: %s", str(e))
+            console.print(f"Traceback: %s", traceback.format_exc())
+        finally:
+            log_state_change("DAEMON:init", "active", "shutting down")
+            if os.path.exists(pidfile):  # Cleanup the PID file
+                os.remove(pidfile)
+                logging.debug("PID file removed.")
+
+def hi_daemon_process(interval=2):
+    """
+    Main daemon process handler
+    
+    This function calls get_check_results_data() function which
+    will either trigger a new call to check_engine_yaml() to generate
+    a new list of check resutls (server context), or it call read_daemon_results() to
+    read current state information (client context).
+
+    This function accepts the 'interval' argument which controls the frequency
+    of check execution and state update.
+    """
+    configure_logging(ini_log_file)
+    console.print(f"hi_daemon_process() running..")
+    log_state_change("DAEMON:init", "started", "running..")
+
+    local_ip_result = get_ip_address()
+    hostname_result = get_hostname_address()
+    script_dir = get_script_dir()
+    hi_dir     = os.path.dirname(script_dir)
+    groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
+    check_results_data = None
+
+    log_state_change("DAEMON", "started", "running...")
+    if enable_check_info():
+        info = 'info' in sys.argv
+    else:
+        info = None
+
+    while True:
+        time.sleep(interval)  # Wait for the specified interval before updating again
+
+        # Get all status messages for each target group in 'config/groups.yaml'
+        check_results_data = get_check_results_data(groups, info)
+
+def read_daemon_results():
+    #if not os.path.isfile("daemon_results.txt"):
+    if not os.path.isfile(STATE_FILE_PATH):
+        return {}
+    with open(STATE_FILE_PATH, 'r') as f:
+        return json.load(f)
+
+def write_daemon_results(data):
+    try:
+        with open("daemon_results.txt", 'w') as f:
+            json.dump(data, f)
+    except IOError as e:
+        print(f"An error occurred while writing to the file: {e}")
+
+def state(state):
+    if state == {}:
+        try:
+            state = read_initial_state()
+        except Exception as e:
+            console.print(f"Exception {e}")
+    return state
+
+def read_initial_state():
+    if not os.path.isfile(STATE_FILE_PATH):
+        return {}
+    with open(STATE_FILE_PATH, 'r') as f:
+        return json.load(f)
+
+def write_state(state):
+    with open(STATE_FILE_PATH, 'w') as f:
+        json.dump(state, f, indent=4)
+
+def check_system_state(current_state, check_record):
+    # Dictionary to store the initial state
+    #console.print(f"{STATE}")
+    last_known_state = state(STATE)
+    previous_state = None
+
+    # Compare current state with last known state
+    for check_name, new_state in current_state.items():
+        if check_name == check_record['name']:
+            try:
+                last_known_state[check_name] = check_record
+                previous_state = last_known_state.get(check_name)
+                if previous_state:
+                    #console.print(f"previous state: {previous_state}")
+                    if previous_state['result'] != new_state:
+                        if LOGGING_ENABLED:
+                            log_state_change(check_name, previous_state, new_state)
+
+                # Update the state file with the new state
+                write_state(last_known_state)
+            except Exception as e:
+                console.print(f"\n[An error occurred: {e}]")
+                console.print(f"Exception in daemon context: %s", str(e))
+                console.print(f"Traceback: %s", traceback.format_exc())
+
+
+""" Terminal Control and Command-line Interfaces """
+"""
+The following functions support curses terminal output and control, along with
+processing of command-line arguments.
+"""
 def hide_cursor_clear_screen():
     print("\033[?25l", end='')  # Hide the cursor
     print("\033[H", end='')  # ANSI escape code to move cursor to top-left
@@ -549,6 +629,21 @@ def hi_watch(interval=2):
         finally:
             print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
 
+def display_hi_report():
+    display_checks()  # Call the display_checks function to print the system checks
+    check_os_eol.main()
+    df_bargraph.display_bar_graph()
+
+
+def display_hi_watch_report():
+    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
+    display_hi_report()
+    console.print(center_text("[🟢] watching.. (ctrl-c to quit)"), style="bold green")
+    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
+
+
+
+""" Logging and Log Management """
 # Custom JSON formatter for log records
 class JsonFormatter(logging.Formatter):
     def format(self, record):
@@ -591,63 +686,11 @@ def log_state_change(check_name, previous_state, new_state):
         }
     )
 
-def read_daemon_results():
-    #if not os.path.isfile("daemon_results.txt"):
-    if not os.path.isfile(STATE_FILE_PATH):
-        return {}
-    with open(STATE_FILE_PATH, 'r') as f:
-        return json.load(f)
 
-def read_initial_state():
-    if not os.path.isfile(STATE_FILE_PATH):
-        return {}
-    with open(STATE_FILE_PATH, 'r') as f:
-        return json.load(f)
-
-def state(state):
-    if state == {}:
-        try:
-            state = read_initial_state()
-        except Exception as e:
-            console.print(f"Exception {e}")
-    return state
-
-def write_daemon_results(data):
-    try:
-        with open("daemon_results.txt", 'w') as f:
-            json.dump(data, f)
-    except IOError as e:
-        print(f"An error occurred while writing to the file: {e}")
-
-def write_state(state):
-    with open(STATE_FILE_PATH, 'w') as f:
-        json.dump(state, f, indent=4)
-
-def check_system_state(current_state, check_record):
-    # Dictionary to store the initial state
-    #console.print(f"{STATE}")
-    last_known_state = state(STATE)
-    previous_state = None
-
-    # Compare current state with last known state
-    for check_name, new_state in current_state.items():
-        if check_name == check_record['name']:
-            try:
-                last_known_state[check_name] = check_record
-                previous_state = last_known_state.get(check_name)
-                if previous_state:
-                    #console.print(f"previous state: {previous_state}")
-                    if previous_state['result'] != new_state:
-                        if LOGGING_ENABLED:
-                            log_state_change(check_name, previous_state, new_state)
-
-                # Update the state file with the new state
-                write_state(last_known_state)
-            except Exception as e:
-                console.print(f"\n[An error occurred: {e}]")
-                console.print(f"Exception in daemon context: %s", str(e))
-                console.print(f"Traceback: %s", traceback.format_exc())
-
+""" MAIN PROGRAM """
+"""
+'hi' program control flow starts here.
+"""
 # Read in 'config/config.ini'
 script_dir = get_script_dir()
 config = configparser.ConfigParser()
