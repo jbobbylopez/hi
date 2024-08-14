@@ -373,6 +373,14 @@ def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
 
 def hi_daemon():
     ''' Hi Daemon '''
+    '''
+    This function sets up the daemon context (server context) of the the program.
+
+    This allows the application to run headless (without the need for GUI or command-line).
+
+    The application would run as a daemon in the background, and would publish state
+    information that could be prased by the hi command line client (client context).
+    '''
     console.print("starting 'hi' daemon..")
     if 'daemon' in sys.argv:
         pidfile = '/tmp/hi_daemon.pid'
@@ -411,6 +419,14 @@ def flush_loggers():
 def hi_daemon_process(interval=2):
     """
     Main daemon process handler
+    
+    This function calls get_check_results_data() function which
+    will either trigger a new call to check_engine_yaml() to generate
+    a new list of check resutls (server context), or it call read_daemon_results() to
+    read current state information (client context).
+
+    This function accepts the 'interval' argument which controls the frequency
+    of check execution and state update.
     """
     configure_logging(ini_log_file)
     console.print(f"hi_daemon_process() running..")
@@ -431,12 +447,9 @@ def hi_daemon_process(interval=2):
 
     while True:
         time.sleep(interval)  # Wait for the specified interval before updating again
-        # tick
-        #log_state_change("DAEMON", "tick", "tick..")
 
         # Get all status messages for each target group in 'config/groups.yaml'
         check_results_data = get_check_results_data(groups, info)
-        #console.print(f"{check_results_data}")
 
 def get_check_results_data(groups, info):
     ''' This function aggregates all the check results into a dict, and
