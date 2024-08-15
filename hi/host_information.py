@@ -201,7 +201,6 @@ def core_module_subchecks(check_record, sub_checks, indicators):
             indicator = negative_indicators.get('icon')
             status = negative_indicators.get('status')
 
-        #output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
         check_record['sub_checks'][sub_check]['icon'] = indicator
         check_record['sub_checks'][sub_check]['status'] = status
         check_record['sub_checks'][sub_check]['output'] = sub_check_output
@@ -209,7 +208,7 @@ def core_module_subchecks(check_record, sub_checks, indicators):
 
     return check_record
 
-def compile_output_messages(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
+def compile_check_results(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
     status = ""
     check_indicators = None
     system_checks = {}
@@ -228,7 +227,6 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     # command.  'check' contains the name of the check in config/checks.yml.
     if cmd_output:
         check_record = check_record_handler(check, group, cmd_output, indicators)
-        #output_messages.append(f"[{check_record['icon']}] {check}: {check_record['status']}")
 
     else:
         indicator = fail_icon
@@ -247,29 +245,20 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                 print(f" Using default indicators.")
                 indicator = fail_icon
                 
-        #output_messages.append(f"[{indicator}] {check}: {output}")
         check_record['name'] = check
         check_record['group'] = group
         check_record['result'] = output
         check_record['icon'] = indicator
         check_record['status'] = fail_status
 
-
-    # Append info: value if present
-    #if info:
-    #output_messages.append(f"  [{info_icon}] {info}")
     check_record['info'] = info
 
     # Append sub_checks if present
     if sub_checks:
         check_record = core_module_subchecks(check_record, sub_checks, indicators)
 
-
     current_state = {check_record['name']:check_record['result']}
     update_system_state(current_state, check_record)
-
-    #final_output = "\n".join(output_messages)
-    #return final_output
 
 def get_check_results_data(groups, info):
     ''' This function aggregates all the check results into a dict, and
@@ -277,7 +266,6 @@ def get_check_results_data(groups, info):
 
     if 'daemon' in sys.argv:
         info = "info"
-        #check_results_data = {group: check_engine_yaml(group, info) for group in groups}
         for group in groups:
             check_engine_yaml(group, info)
     else:
@@ -335,14 +323,11 @@ def check_engine_yaml(check_type, verbose=False):
 
     for check, attribs in checks.items():
         if attribs['group'] == check_type:
-            output = check_process(check, attribs['command'])
+            output = check_process(check, attribs['command']) # The actual execution of commands
             sub_checks = attribs.get('sub_checks') if verbose else None
             info = attribs.get('info') if verbose else None
             indicators = attribs.get('indicators')
-            #group_output.append(compile_output_messages(check, output, check_type, info, indicators, sub_checks))
-            compile_output_messages(check, output, check_type, info, indicators, sub_checks)
-
-    #return group_output
+            compile_check_results(check, output, check_type, info, indicators, sub_checks)
 
 def enable_check_info():
     check_info = None
@@ -491,30 +476,30 @@ def hide_cursor_clear_screen():
 
 def hi_watch(interval=2):
     """
-    Continuously display the output of the display_checks function, updating every 'interval' seconds.
+    Continuously display the output of the checks(), updating every 'interval' seconds.
     """
     hide_cursor_clear_screen()
-    display_hi_watch_report()
+    hi_watch_report()
     if 'watch' in sys.argv:
         try:
             while True:
                 time.sleep(interval)  # Wait for the specified interval before updating again
-                display_hi_watch_report()
+                hi_watch_report()
         except KeyboardInterrupt:
             console.clear()
             console.print('hi: continuous monitoring stopped.')
         finally:
             print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
 
-def display_hi_report():
-    display_checks()  # Call the display_checks function to print the system checks
+def hi_report():
+    checks()  # Call the checks() print the system checks
     check_os_eol.main()
     df_bargraph.display_bar_graph()
 
 
-def display_hi_watch_report():
+def hi_watch_report():
     print("\033[H", end='')  # ANSI escape code to move cursor to top-left
-    display_hi_report()
+    hi_report()
     console.print(center_text("[🟢] watching.. (ctrl-c to quit)"), style="bold green")
     print("\033[J", end='')  # Clear the rest of the screen from the cursor position
 
@@ -582,7 +567,7 @@ def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
 
         console.print(table)
 
-def display_checks():
+def checks():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
     """
@@ -705,4 +690,4 @@ if 'watch' in sys.argv:
 elif 'daemon' in sys.argv:
     hi_daemon()
 else:
-    display_hi_report()
+    hi_report()
