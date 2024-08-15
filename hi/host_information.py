@@ -41,6 +41,8 @@ STATE = {}
 STATE_FILE_PATH = os.path.join(os.path.dirname(script_dir), 'state.json')
 LOGGING_ENABLED = False
 
+
+
 """ Utilities """
 """
 Small / uncategorized tools and utilties that support the program functionality.
@@ -175,7 +177,7 @@ def check_record_handler(check, group, output, indicators):
 
     return check_record
 
-def core_module_subchecks(check_record, sub_checks, indicators, output_messages):
+def core_module_subchecks(check_record, sub_checks, indicators):
     check_record['sub_checks'] = {}
     for sub_check in sub_checks:
         check_record['sub_checks'][sub_check] = {}
@@ -199,7 +201,7 @@ def core_module_subchecks(check_record, sub_checks, indicators, output_messages)
             indicator = negative_indicators.get('icon')
             status = negative_indicators.get('status')
 
-        output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+        #output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
         check_record['sub_checks'][sub_check]['icon'] = indicator
         check_record['sub_checks'][sub_check]['status'] = status
         check_record['sub_checks'][sub_check]['output'] = sub_check_output
@@ -226,7 +228,7 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     # command.  'check' contains the name of the check in config/checks.yml.
     if cmd_output:
         check_record = check_record_handler(check, group, cmd_output, indicators)
-        output_messages.append(f"[{check_record['icon']}] {check}: {check_record['status']}")
+        #output_messages.append(f"[{check_record['icon']}] {check}: {check_record['status']}")
 
     else:
         indicator = fail_icon
@@ -245,7 +247,7 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                 print(f" Using default indicators.")
                 indicator = fail_icon
                 
-        output_messages.append(f"[{indicator}] {check}: {output}")
+        #output_messages.append(f"[{indicator}] {check}: {output}")
         check_record['name'] = check
         check_record['group'] = group
         check_record['result'] = output
@@ -255,19 +257,19 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
 
     # Append info: value if present
     #if info:
-    output_messages.append(f"  [{info_icon}] {info}")
+    #output_messages.append(f"  [{info_icon}] {info}")
     check_record['info'] = info
 
     # Append sub_checks if present
     if sub_checks:
-        check_record = core_module_subchecks(check_record, sub_checks, indicators, output_messages)
+        check_record = core_module_subchecks(check_record, sub_checks, indicators)
 
 
     current_state = {check_record['name']:check_record['result']}
-    check_system_state(current_state, check_record)
+    update_system_state(current_state, check_record)
 
-    final_output = "\n".join(output_messages)
-    return final_output
+    #final_output = "\n".join(output_messages)
+    #return final_output
 
 def get_check_results_data(groups, info):
     ''' This function aggregates all the check results into a dict, and
@@ -275,7 +277,9 @@ def get_check_results_data(groups, info):
 
     if 'daemon' in sys.argv:
         info = "info"
-        check_results_data = {group: check_engine_yaml(group, info) for group in groups}
+        #check_results_data = {group: check_engine_yaml(group, info) for group in groups}
+        for group in groups:
+            check_engine_yaml(group, info)
     else:
         check_results_data = state()
         return check_results_data
@@ -302,7 +306,6 @@ def check_argv_config_yaml_file():
     
     if has_config and has_yml_file:
         return "config/" + yml_file_path
-
 
 def check_engine_yaml(check_type, verbose=False):
     group_output = []
@@ -336,9 +339,10 @@ def check_engine_yaml(check_type, verbose=False):
             sub_checks = attribs.get('sub_checks') if verbose else None
             info = attribs.get('info') if verbose else None
             indicators = attribs.get('indicators')
-            group_output.append(compile_output_messages(check, output, check_type, info, indicators, sub_checks))
+            #group_output.append(compile_output_messages(check, output, check_type, info, indicators, sub_checks))
+            compile_output_messages(check, output, check_type, info, indicators, sub_checks)
 
-    return group_output
+    #return group_output
 
 def enable_check_info():
     check_info = None
@@ -450,7 +454,7 @@ def write_state(state):
     except IOError as e:
         print(f"An error occurred while writing to the file: {e}")
 
-def check_system_state(current_state, check_record):
+def update_system_state(current_state, check_record):
     # Dictionary to store the initial state
     #console.print(f"{STATE}")
     last_known_state = state(STATE)
