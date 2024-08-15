@@ -30,19 +30,21 @@ import json
 import check_os_eol
 import df_bargraph
 
-# DEFAULT VARIABLES
-STATE_FILE_PATH = 'state.json'
+def get_script_dir():
+    ''' Returns the directory where the script is running from '''
+    return os.path.dirname(os.path.abspath(__file__))
+script_dir = get_script_dir()
+
+
+# Initial State Globals
 STATE = {}
+STATE_FILE_PATH = os.path.join(os.path.dirname(script_dir), 'state.json')
 LOGGING_ENABLED = False
 
 """ Utilities """
 """
 Small / uncategorized tools and utilties that support the program functionality.
 """
-def get_script_dir():
-    ''' Returns the directory where the script is running from '''
-    return os.path.dirname(os.path.abspath(__file__))
-
 def get_ip_address():
     result = {
         "ip_address": None,
@@ -128,6 +130,7 @@ def module_expressvpn(check_record, output):
         check_record['icon'] = fail_icon
         check_record['status'] = f"Status: {output.strip()}"
     return check_record
+
 
 
 """ Check Processors """
@@ -261,8 +264,6 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
 
 
     current_state = {check_record['name']:check_record['result']}
-    #wip_state = {check_record['name']:{'result':check_record['result'],'details':check_record}}
-    #console.print(f"{wip_state}")
     check_system_state(current_state, check_record)
 
     final_output = "\n".join(output_messages)
@@ -275,9 +276,8 @@ def get_check_results_data(groups, info):
     if 'daemon' in sys.argv:
         info = "info"
         check_results_data = {group: check_engine_yaml(group, info) for group in groups}
-        write_daemon_results(check_results_data)
     else:
-        check_results_data = read_daemon_results()
+        check_results_data = state()
         return check_results_data
 
 
@@ -347,121 +347,6 @@ def enable_check_info():
     else:
         check_info = None
     return check_info
-
-
-""" 'rich' terminal control and display """
-"""
-Various functions that support terminal output display control.
-"""
-def center_text(text):
-    """
-    Center the given text based on the terminal width using Rich.
-    """
-    return Align.center(text)
-
-def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
-    info_icon = config.get('Defaults', 'info_icon')
-    all_group_statuses = {group: [] for group in groups}
-    
-    # Organize data by groups
-    for key, value in check_results_data.items():
-        group = value.get('group', 'No group')
-        status = f"{value['icon']} {value['name']} - {value['status']}"
-        info = f"{value['info']}"
-
-        sub_checks = None
-        if 'sub_checks' in value:
-            sub_checks = value['sub_checks']
-
-        if group in groups:
-            all_group_statuses[group].append(status)
-            if enable_check_info() and value['info']:
-                all_group_statuses[group].append(f"  [{info_icon}] {info}")
-            if sub_checks:
-                for sub_check in sub_checks:
-                    all_group_statuses[group].append(f"    [{sub_checks[sub_check]['icon']}] {sub_check}: {sub_checks[sub_check]['status']} {sub_checks[sub_check]['output']}")
-    
-    # Create tables
-    for i in range(0, len(groups), num_columns):
-        console = Console()
-        table = Table(
-            show_header=True, 
-            header_style=table_colors["header_style"],
-            expand=True, 
-            box=MINIMAL,
-            border_style=table_colors["border_style"],
-            style=table_colors["default_style"]
-        )
-        
-        current_groups = groups[i:i + num_columns]
-        for group in current_groups:
-            table.add_column(group, style=table_colors["column_style"], justify="left", no_wrap=True, width=40)
-        
-        max_length = max(len(all_group_statuses[group]) for group in current_groups)
-        
-        for j in range(max_length):
-            row = [
-                #Text(f"hello! {max_length}/{j} - {len(all_group_statuses[group])}")
-                Text(all_group_statuses[group][j], style=table_colors['text_style']) 
-                if j < len(all_group_statuses[group]) 
-                else ""
-                for group in current_groups
-            ]
-            table.add_row(*row)
-        
-        console.print(table)
-
-def display_checks():
-    """
-    Display categorized checks in Rich tables, handling unequal lists gracefully.
-    """
-    report_colors = {}
-    table_colors = {}
-    local_ip_result = get_ip_address()
-    hostname_result = get_hostname_address()
-    script_dir = get_script_dir()
-    hi_dir     = os.path.dirname(script_dir)
-    groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
-
-    if enable_check_info:
-        info = 'info' in sys.argv
-    else:
-        info = None
-
-    # Get hi tool display header styles
-    report_colors['header_style'] = "" if config.get('Report', 'header_style') in [None, "None"] else config.get('Report', 'header_style')
-    report_colors['hostname_style'] = "" if config.get('Report', 'hostname_style') in [None, "None"] else config.get('Report', 'hostname_style')
-    report_colors['ip_style'] = "" if config.get('Report', 'ip_style') in [None, "None"] else config.get('Report', 'ip_style')
-
-    # construct the header
-    header_text = Text()
-    report_title = "⟪ HOST INFORMATION ⟫"
-    hostname = hostname_result['hostname']
-    local_ip = local_ip_result['ip_address']
-    header_text = f"{report_title} | {hostname} | {local_ip}"
-
-    # print the header
-    console.print(f"{report_title}", end="", style=report_colors['header_style'])
-    console.print(' | ', end="", style=report_colors['ip_style'])
-    console.print(f"{hostname}", end="", style=report_colors['hostname_style'])
-    console.print(' | ', end="", style=report_colors['ip_style'])
-    console.print(f"{local_ip}", end="", style=report_colors['ip_style'])
-    console.print(' ' * (console.width - len(header_text)), style=report_colors['ip_style'])
-
-    # Get all status messages for each target group in 'config/groups.yaml'
-    check_results_data = get_check_results_data(groups, info)
-
-    # Rich table output
-    # read number_of_columns per table specified in config.ini
-    num_columns = int(config.get('Tables', 'number_of_columns'))
-    table_colors['default_style'] = "" if config.get('Tables', 'default_style') in [None, "None"] else config.get('Tables', 'default_style')
-    table_colors['header_style'] = "" if config.get('Tables', 'header_style') in [None, "None"] else config.get('Tables', 'header_style')
-    table_colors['border_style'] = "" if config.get('Tables', 'border_style') in [None, "None"] else config.get('Tables', 'border_style')
-    table_colors['column_style'] = "" if config.get('Tables', 'column_style') in [None, "None"] else config.get('Tables', 'column_style')
-    table_colors['text_style'] = "" if config.get('Tables', 'text_style') in [None, "None"] else config.get('Tables', 'text_style')
-
-    # Generate the tables
-    generate_rich_tables(groups, check_results_data, table_colors, num_columns)
 
 
 
@@ -544,21 +429,7 @@ def hi_daemon_process(interval=2):
         # Get all status messages for each target group in 'config/groups.yaml'
         check_results_data = get_check_results_data(groups, info)
 
-def read_daemon_results():
-    #if not os.path.isfile("daemon_results.txt"):
-    if not os.path.isfile(STATE_FILE_PATH):
-        return {}
-    with open(STATE_FILE_PATH, 'r') as f:
-        return json.load(f)
-
-def write_daemon_results(data):
-    try:
-        with open("daemon_results.txt", 'w') as f:
-            json.dump(data, f)
-    except IOError as e:
-        print(f"An error occurred while writing to the file: {e}")
-
-def state(state):
+def state(state = {}):
     if state == {}:
         try:
             state = read_initial_state()
@@ -573,8 +444,11 @@ def read_initial_state():
         return json.load(f)
 
 def write_state(state):
-    with open(STATE_FILE_PATH, 'w') as f:
-        json.dump(state, f, indent=4)
+    try:
+        with open(STATE_FILE_PATH, 'w') as f:
+            json.dump(state, f, indent=4)
+    except IOError as e:
+        print(f"An error occurred while writing to the file: {e}")
 
 def check_system_state(current_state, check_record):
     # Dictionary to store the initial state
@@ -589,7 +463,6 @@ def check_system_state(current_state, check_record):
                 last_known_state[check_name] = check_record
                 previous_state = last_known_state.get(check_name)
                 if previous_state:
-                    #console.print(f"previous state: {previous_state}")
                     if previous_state['result'] != new_state:
                         if LOGGING_ENABLED:
                             log_state_change(check_name, previous_state, new_state)
@@ -643,6 +516,122 @@ def display_hi_watch_report():
 
 
 
+""" 'rich' terminal control and display """
+"""
+Various functions that support terminal output display control.
+"""
+def center_text(text):
+    """
+    Center the given text based on the terminal width using Rich.
+    """
+    return Align.center(text)
+
+def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
+    info_icon = config.get('Defaults', 'info_icon')
+    all_group_statuses = {group: [] for group in groups}
+
+    # Organize data by groups
+    for key, value in check_results_data.items():
+        group = value.get('group', 'No group')
+        status = f"{value['icon']} {value['name']} - {value['status']}"
+        info = f"{value['info']}"
+
+        sub_checks = None
+        if 'sub_checks' in value:
+            sub_checks = value['sub_checks']
+
+        if group in groups:
+            all_group_statuses[group].append(status)
+            if enable_check_info() and value['info']:
+                all_group_statuses[group].append(f"  [{info_icon}] {info}")
+            if sub_checks:
+                for sub_check in sub_checks:
+                    all_group_statuses[group].append(f"    [{sub_checks[sub_check]['icon']}] {sub_check}: {sub_checks[sub_check]['status']} {sub_checks[sub_check]['output']}")
+
+    # Create tables
+    for i in range(0, len(groups), num_columns):
+        console = Console()
+        table = Table(
+            show_header=True,
+            header_style=table_colors["header_style"],
+            expand=True,
+            box=MINIMAL,
+            border_style=table_colors["border_style"],
+            style=table_colors["default_style"]
+        )
+
+        current_groups = groups[i:i + num_columns]
+        for group in current_groups:
+            table.add_column(group, style=table_colors["column_style"], justify="left", no_wrap=True, width=40)
+
+        max_length = max(len(all_group_statuses[group]) for group in current_groups)
+
+        for j in range(max_length):
+            row = [
+                #Text(f"hello! {max_length}/{j} - {len(all_group_statuses[group])}")
+                Text(all_group_statuses[group][j], style=table_colors['text_style'])
+                if j < len(all_group_statuses[group])
+                else ""
+                for group in current_groups
+            ]
+            table.add_row(*row)
+
+        console.print(table)
+
+def display_checks():
+    """
+    Display categorized checks in Rich tables, handling unequal lists gracefully.
+    """
+    report_colors = {}
+    table_colors = {}
+    local_ip_result = get_ip_address()
+    hostname_result = get_hostname_address()
+    script_dir = get_script_dir()
+    hi_dir     = os.path.dirname(script_dir)
+    groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
+
+    if enable_check_info:
+        info = 'info' in sys.argv
+    else:
+        info = None
+
+    # Get hi tool display header styles
+    report_colors['header_style'] = "" if config.get('Report', 'header_style') in [None, "None"] else config.get('Report', 'header_style')
+    report_colors['hostname_style'] = "" if config.get('Report', 'hostname_style') in [None, "None"] else config.get('Report', 'hostname_style')
+    report_colors['ip_style'] = "" if config.get('Report', 'ip_style') in [None, "None"] else config.get('Report', 'ip_style')
+
+    # construct the header
+    header_text = Text()
+    report_title = "⟪ HOST INFORMATION ⟫"
+    hostname = hostname_result['hostname']
+    local_ip = local_ip_result['ip_address']
+    header_text = f"{report_title} | {hostname} | {local_ip}"
+
+    # print the header
+    console.print(f"{report_title}", end="", style=report_colors['header_style'])
+    console.print(' | ', end="", style=report_colors['ip_style'])
+    console.print(f"{hostname}", end="", style=report_colors['hostname_style'])
+    console.print(' | ', end="", style=report_colors['ip_style'])
+    console.print(f"{local_ip}", end="", style=report_colors['ip_style'])
+    console.print(' ' * (console.width - len(header_text)), style=report_colors['ip_style'])
+
+    # Get all status messages for each target group in 'config/groups.yaml'
+    check_results_data = get_check_results_data(groups, info)
+
+    # Rich table output
+    # read number_of_columns per table specified in config.ini
+    num_columns = int(config.get('Tables', 'number_of_columns'))
+    table_colors['default_style'] = "" if config.get('Tables', 'default_style') in [None, "None"] else config.get('Tables', 'default_style')
+    table_colors['header_style'] = "" if config.get('Tables', 'header_style') in [None, "None"] else config.get('Tables', 'header_style')
+    table_colors['border_style'] = "" if config.get('Tables', 'border_style') in [None, "None"] else config.get('Tables', 'border_style')
+    table_colors['column_style'] = "" if config.get('Tables', 'column_style') in [None, "None"] else config.get('Tables', 'column_style')
+    table_colors['text_style'] = "" if config.get('Tables', 'text_style') in [None, "None"] else config.get('Tables', 'text_style')
+
+    # Generate the tables
+    generate_rich_tables(groups, check_results_data, table_colors, num_columns)
+
+
+
 """ Logging and Log Management """
 # Custom JSON formatter for log records
 class JsonFormatter(logging.Formatter):
@@ -692,7 +681,6 @@ def log_state_change(check_name, previous_state, new_state):
 'hi' program control flow starts here.
 """
 # Read in 'config/config.ini'
-script_dir = get_script_dir()
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(script_dir), 'config/config.ini'))
 
