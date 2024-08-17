@@ -379,7 +379,7 @@ def hi_daemon():
         os.remove(pidfile)
 
     try:
-        log_state_change("DAEMON:init", "offline", "starting..")
+        log_state_change("hi_daemon()", "offline", "starting..")
         console.print(f"hi_daemon() started.")
         with daemon.DaemonContext(
             working_directory='.',  # Ensure this is a valid directory for your process
@@ -401,10 +401,10 @@ def hi_daemon():
         console.print(f"Exception in daemon context: %s", str(e))
         console.print(f"Traceback: %s", traceback.format_exc())
     finally:
-        log_state_change("DAEMON:init", "active", "shutting down")
+        log_state_change("hi_daemon()", "running", "shutting down")
         if os.path.exists(pidfile):  # Cleanup the PID file
             os.remove(pidfile)
-            logging.debug("PID file removed.")
+            log_state_change("hi_daemon()", f"pidfile ({pid})", "pid file removed")
 
 def hi_daemon_process(pid,interval=2):
     """
@@ -420,7 +420,7 @@ def hi_daemon_process(pid,interval=2):
     """
     configure_logging(ini_log_file)
     console.print(f"hi_daemon_process() running (PID: {pid}).")
-    log_state_change("DAEMON:init", "started", "running..")
+    log_state_change("hi_daemon_process()", "started", "running..")
 
     local_ip_result = get_ip_address()
     hostname_result = get_hostname_address()
@@ -463,7 +463,6 @@ def write_state(state):
 
 def update_system_state(current_state, check_record):
     # Dictionary to store the initial state
-    #console.print(f"{STATE}")
     last_known_state = state(STATE)
     previous_state = None
 
@@ -471,14 +470,14 @@ def update_system_state(current_state, check_record):
     for check_name, new_state in current_state.items():
         if check_name == check_record['name']:
             try:
-                last_known_state[check_name] = check_record
                 previous_state = last_known_state.get(check_name)
                 if previous_state:
                     if previous_state['result'] != new_state:
                         if LOGGING_ENABLED:
-                            log_state_change(check_name, previous_state, new_state)
+                            log_state_change(check_name, previous_state['result'], new_state)
 
                 # Update the state file with the new state
+                last_known_state[check_name] = check_record
                 write_state(last_known_state)
             except Exception as e:
                 console.print(f"\n[An error occurred: {e}]")
