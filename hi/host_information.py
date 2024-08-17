@@ -10,6 +10,7 @@ import traceback
 import socket
 import re
 import os
+import psutil
 import yaml
 import configparser
 import lockfile
@@ -343,47 +344,69 @@ def enable_check_info():
 """
 Functions that support daemon initialization and functionality
 """
+def read_pid_file(pidfile):
+    try:
+        with open(pidfile, 'r') as f:
+            pid = int(f.read().strip())
+        return pid
+    except (IOError, ValueError):
+        return None
+
+def is_process_running(pid):
+    try:
+        return psutil.pid_exists(pid) and psutil.Process(pid).is_running()
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        return False
+
 def hi_daemon():
     ''' Hi Daemon '''
     '''
-    This function sets up the daemon context (server context) of the the program.
+    This function sets up the daemon context (server context) of the program.
 
     This allows the application to run headless (without the need for GUI or command-line).
 
     The application would run as a daemon in the background, and would publish state
-    information that could be prased by the hi command line client (client context).
+    information that could be parsed by the hi command line client (client context).
     '''
-    console.print("starting 'hi' daemon..")
-    if 'daemon' in sys.argv:
-        pidfile = '/tmp/hi_daemon.pid'
-        try:
-            log_state_change("DAEMON:init", "offline", "starting..")
-            console.print(f"hi daemon started.")
-            with daemon.DaemonContext(
-                working_directory='.',  # Ensure this is a valid directory for your process
-                umask=0o022,
-                pidfile=daemon.pidfile.PIDLockFile(pidfile),
-                stderr=sys.stderr,  # Redirect stderr to catch daemon errors
-                stdout=sys.stdout   # Redirect stdout to catch daemon logs
-            ):
-                hi_daemon_process()
-        except PermissionError as e:
-            console.print(f"\n[Permission error: {e}]")
-            logging.debug(f"Permission error: {e}")
-        except FileNotFoundError as e:
-            console.print(f"\n[File not found: {e}]")
-            logging.debug(f"File not found: {e}")
-        except Exception as e:
-            console.print(f"\n[An error occurred: {e}]")
-            console.print(f"Exception in daemon context: %s", str(e))
-            console.print(f"Traceback: %s", traceback.format_exc())
-        finally:
-            log_state_change("DAEMON:init", "active", "shutting down")
-            if os.path.exists(pidfile):  # Cleanup the PID file
-                os.remove(pidfile)
-                logging.debug("PID file removed.")
+    pidfile = '/tmp/hi_daemon.pid'
+    pid = read_pid_file(pidfile)
 
-def hi_daemon_process(interval=2):
+    if pid and is_process_running(pid):
+        print(f"hi_daemon() is already running (PID: {open(pidfile).read().strip()}).")
+        sys.exit(1)
+    elif pid: #PID file exists but process not running
+        print(f"Removing stale PID file (PID: {pid}).")
+        os.remove(pidfile)
+
+    try:
+        log_state_change("DAEMON:init", "offline", "starting..")
+        console.print(f"hi_daemon() started.")
+        with daemon.DaemonContext(
+            working_directory='.',  # Ensure this is a valid directory for your process
+            umask=0o022,
+            pidfile=daemon.pidfile.PIDLockFile(pidfile),
+            stderr=sys.stderr,  # Redirect stderr to catch daemon errors
+            stdout=sys.stdout   # Redirect stdout to catch daemon logs
+        ):
+            pid = read_pid_file(pidfile)
+            hi_daemon_process(pid,2)
+    except PermissionError as e:
+        console.print(f"\n[Permission error: {e}]")
+        logging.debug(f"Permission error: {e}")
+    except FileNotFoundError as e:
+        console.print(f"\n[File not found: {e}]")
+        logging.debug(f"File not found: {e}")
+    except Exception as e:
+        console.print(f"\n[An error occurred: {e}]")
+        console.print(f"Exception in daemon context: %s", str(e))
+        console.print(f"Traceback: %s", traceback.format_exc())
+    finally:
+        log_state_change("DAEMON:init", "active", "shutting down")
+        if os.path.exists(pidfile):  # Cleanup the PID file
+            os.remove(pidfile)
+            logging.debug("PID file removed.")
+
+def hi_daemon_process(pid,interval=2):
     """
     Main daemon process handler
     
@@ -396,7 +419,7 @@ def hi_daemon_process(interval=2):
     of check execution and state update.
     """
     configure_logging(ini_log_file)
-    console.print(f"hi_daemon_process() running..")
+    console.print(f"hi_daemon_process() running (PID: {pid}).")
     log_state_change("DAEMON:init", "started", "running..")
 
     local_ip_result = get_ip_address()
@@ -406,7 +429,6 @@ def hi_daemon_process(interval=2):
     groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
     check_results_data = None
 
-    log_state_change("DAEMON", "started", "running...")
     if enable_check_info():
         info = 'info' in sys.argv
     else:
@@ -663,6 +685,7 @@ def log_state_change(check_name, previous_state, new_state):
             'new_state': new_state
         }
     )
+
 
 
 """ MAIN PROGRAM """
