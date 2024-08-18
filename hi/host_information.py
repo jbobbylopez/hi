@@ -140,7 +140,7 @@ def module_expressvpn(check_record, output):
 """
 Various filters and processors of checks defined.
 """
-def check_record_handler(check, group, output, indicators):
+def check_record_handler(check, group, info, output, indicators):
     # Get INI defaults
     fail_icon = config.get('Defaults', 'fail_icon')
     fail_status = config.get('Defaults', 'fail_status')
@@ -151,8 +151,11 @@ def check_record_handler(check, group, output, indicators):
     check_record = {}
     check_record['name'] = check
     check_record['group'] = group
+    check_record['info'] = info
+    check_record['status'] = success_status
     check_record['result'] = success_status
     check_record['icon'] = success_icon # Default positive indicator
+    check_record['output'] = output
 
     if 'data backup' in check.lower():
         check_record = module_data_backup(check_record, output, fail_icon, fail_status)
@@ -162,10 +165,13 @@ def check_record_handler(check, group, output, indicators):
 
     else:
         if indicators:
-            if 'positive' in indicators and 'icon' in indicators['positive']:
-                check_record['icon'] = indicators['positive']['icon']
-            if 'positive' in indicators and 'status' in indicators['positive']:
-                check_record['status'] = indicators['positive']['status']
+            check_record['icon'] = indicators['positive'].get('icon', {})
+            check_record['status'] = indicators['positive'].get('status', {})
+            check_record['result'] = check_record['status']
+            #if 'positive' in indicators and 'icon' in indicators['positive']:
+            #    check_record['icon'] = indicators['positive']['icon']
+            #if 'positive' in indicators and 'status' in indicators['positive']:
+            #    check_record['status'] = indicators['positive']['status']
         try:
             # this is not expected to work if indicators is not set - only
             # to trigger an exception
@@ -202,8 +208,10 @@ def core_module_subchecks(check_record, sub_checks, indicators):
             indicator = negative_indicators.get('icon')
             status = negative_indicators.get('status')
 
+        check_record['sub_checks'][sub_check]['name'] = sub_check
         check_record['sub_checks'][sub_check]['icon'] = indicator
         check_record['sub_checks'][sub_check]['status'] = status
+        check_record['sub_checks'][sub_check]['result'] = status
         check_record['sub_checks'][sub_check]['output'] = sub_check_output
         check_record['sub_checks'][sub_check]['command'] = sub_check_command
 
@@ -222,22 +230,31 @@ def compile_check_results(check, cmd_output, group, info=None, indicators=None, 
     success_icon = config.get('Defaults', 'success_icon')
     success_status = config.get('Defaults', 'success_status')
     info_icon = config.get('Defaults', 'info_icon')
+    indicator = fail_icon
+    output = fail_status
+
 
     # The below 'if output:' statement means that the command completed
     # successfully, and 'output' contains any data returned by the executed
     # command.  'check' contains the name of the check in config/checks.yml.
     if cmd_output:
-        check_record = check_record_handler(check, group, cmd_output, indicators)
+        check_record = check_record_handler(check, group, info, cmd_output, indicators)
 
     else:
-        indicator = fail_icon
-        output = fail_status
-
+        check_record['name'] = check
+        check_record['info'] = info
+        check_record['group'] = group
+        check_record['icon'] = indicator
+        check_record['result'] = output
+        check_record['status'] = fail_status
         if indicators:
             try:
                 indicator = indicators.get('negative', {}).get('icon', indicator)
                 if 'negative' in indicators and 'status' in indicators['negative']:
                     output = indicators.get('negative', {}).get('status', fail_status)
+                    check_record['result'] = indicators.get('negative', {}).get('status', fail_status) 
+                    check_record['status'] = indicators.get('negative', {}).get('status', fail_status)
+                    check_record['icon'] = indicators.get('negative', {}).get('icon', fail_icon)
 
             except Exception as e:
                 print(f"* Warning: Potential checks file configuration error.")
@@ -246,19 +263,11 @@ def compile_check_results(check, cmd_output, group, info=None, indicators=None, 
                 print(f" Using default indicators.")
                 indicator = fail_icon
                 
-        check_record['name'] = check
-        check_record['group'] = group
-        check_record['result'] = output
-        check_record['icon'] = indicator
-        check_record['status'] = fail_status
-
-    check_record['info'] = info
-
     # Append sub_checks if present
     if sub_checks:
         check_record = core_module_subchecks(check_record, sub_checks, indicators)
 
-    current_state = {check_record['name']:check_record['result']}
+    current_state = {check_record['name']:check_record['status']}
     update_system_state(current_state, check_record)
 
 def get_check_results_data(groups, info):
@@ -472,9 +481,9 @@ def update_system_state(current_state, check_record):
             try:
                 previous_state = last_known_state.get(check_name)
                 if previous_state:
-                    if previous_state['result'] != new_state:
+                    if previous_state['status'] != new_state:
                         if LOGGING_ENABLED:
-                            log_state_change(check_name, previous_state['result'], new_state)
+                            log_state_change(check_name, previous_state['status'], new_state)
 
                 # Update the state file with the new state
                 last_known_state[check_name] = check_record
@@ -699,6 +708,8 @@ config.read(os.path.join(os.path.dirname(script_dir), 'config/config.ini'))
 try:
     LOGGING_ENABLED = config.get('Logging', 'enable_logging')
     ini_log_file = config.get('Paths', 'log_file')
+    ini_log_file = os.path.join(os.path.dirname(script_dir), ini_log_file)
+    config.get('Paths', 'log_file')
     if ini_log_file and LOGGING_ENABLED.lower() == "true":
         configure_logging(ini_log_file)
 except Exception as e:
