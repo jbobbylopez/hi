@@ -79,6 +79,10 @@ Ensure that your terminal supports the UTF8 character set for proper display of 
 
 
 ### Installation
+
+Lets say your working directory is ~/tools/.  `cd ~/tools/` and do the
+following:
+
 1.  `git clone https://github.com/jbobbylopez/hi.git`
 
 `cd hi`
@@ -88,8 +92,36 @@ Ensure that your terminal supports the UTF8 character set for proper display of 
 3.  Update ` config/config.ini ` and your custom ` checks.yml ` file
     accordingly.
 
-4.  `python3 hi/host_information.py`
-    
+4. Add an alias to your ~/.bashrc to call this script:
+
+`alias hi="python3 /home/tools/hi/hi/host_information.py $@"`
+
+After adding these lines, save the ~/.bashrc file and apply the changes:
+`source ~/.bashrc`
+
+Now you can run the tool using the commands:
+
+To start the daemon:
+`hi daemon` 
+
+To run the cli client:
+`hi`
+
+or
+`hi watch info`
+
+#### Options and Arguments - the *hi* cli
+You typically just want to run ` hi `, but there are a few options and
+arguments to the tool you might want to be aware of.
+
+Arguments:
+
+-  'daemon': Run the 'hi' daemon.
+-  'info': Show check description and sub-checks.
+-  'watch': Native watch command for ongoing monitoring.
+-  'config': Specify another status checks file that resides in 'config/'.
+            E.g. `  hi config my-checks.yml  ` 
+
 
 # Configuration
 There are currently three (3) configuration files that 'hi' depends on.  They are as
@@ -130,6 +162,101 @@ text_style = None
 enable_logging = false
 
 ```
+
+## config/checks.yml ##
+This is where the magic happens.  The `  config/checks.yml  ` file is where
+your system status checks are defined.  This file can be renamed to
+anything you want, but the new name or location will need to be updated in
+your `config.ini` file for it to be used.
+
+This configuration file allows you to define any number of system status checks to monitor services or functionalities available via the command line.
+
+Example configuration reference:
+```
+checks:
+  qbittorrent:
+    info: My bittorrent client
+    group: Media
+    command: |
+      ps -ef | grep -E '([q]bittorrent)'
+  ...
+```
+
+Several examples of various system status checks are available for review
+or reuse in the ` config/checks.yml ` file that comes with this tool.
+
+
+### sub-checks
+You can now define multiple sub-checks using the same check declaration pattern.
+
+Here's an example of how sub-checks are configured.  We will use the
+'Thunderbird' check which comes pre-defined in config/checks.yml.
+
+In the following check defined for Thunderbird, you can see that not only is the
+main check for the running process in place, but there are also two
+sub-checks defined for checking Thunderbird's 'Memory Usage' and 'Version'
+information.
+
+```
+  Thunderbird:  
+    info: My favorite mail client
+    group: Communications            
+    indicators:                                                                   
+      positive:                     
+        status:    
+        icon: 📧
+      negative:                         
+        status:
+        icon: 📧
+    command: | 
+      ps -ef | grep -E "[t]hunderbird"
+    sub_checks:              
+      Memory Usage:                     
+        command: |
+          ps --no-headers -o rss -C thunderbird | awk '{sum+=$1} END {printf "%.2f MB (%.2f GB)\n", sum/1024, sum/1048576}'                                         
+        indicators:  
+          positive:
+              icon: 💾                                                            
+          negative:
+              icon: 💾    
+      Version:    
+        command: |                                                                                                                                                  
+          thunderbird --version
+```
+### Custom Indicators
+
+In the above Thunderbird check configuration example, you can also see the
+custom indicators which can be defined within the config/checks.yml file.
+
+These custom indicators, when defined, will override the default check
+'hi' check indicators (in most cases).
+
+You can see that custom indicators have been defined not just for
+Thunderbird, but also for it's 'Memory Usage' sub-check.  The 'Version'
+sub-check does not have any indicators defined, and so that sub-check will
+use the default indicators.
+
+An example of what the output looks like when `  hi info  ` is run:
+![Sub-checks and Indicators](assets/Screenshot_20240709_034009-subchecks-indicators-output.png)
+
+As you can see, the check description (info field), along with the
+sub-checks are indented slightly from the main checks so that they are
+nicely grouped together.
+
+## The 'hi' daemon ##
+'hi' is now implemented as a client/server application that requires the
+monitoring component to be run as a daemon.  This is done with the
+following command:
+
+`hi daemon`
+
+Once the daemon is running, you can use the 'hi' tool as usual using any
+of the following commands:
+
+`hi'
+'hi info'
+'hi watch'
+'hi watch info'
 
 #### Colors and Styles ####
 Colors and styles can be applied to various parts of the *hi* display
@@ -233,112 +360,6 @@ groups:
   - Tools
 ```
 
-#### config/checks.yml ####
-This is where the magic happens.  The `  config/checks.yml  ` file is where
-your system status checks are defined.  This file can be renamed to
-anything you want, but the new name or location will need to be updated in
-your `config.ini` file for it to be used.
-
-This configuration file allows you to define any number of system status checks to monitor services or functionalities available via the command line.
-
-Example configuration reference:
-```
-checks:
-  qbittorrent:
-    info: My bittorrent client
-    group: Media
-    command: |
-      ps -ef | grep -E '([q]bittorrent)'
-  ...
-```
-
-Several examples of various system status checks are available for review
-or reuse in the ` config/checks.yml ` file that comes with this tool.
-
-
-### sub-checks
-You can now define multiple sub-checks using the same check declaration pattern.
-
-Here's an example of how sub-checks are configured.  We will use the
-'Thunderbird' check which comes pre-defined in config/checks.yml.
-
-In the following check defined for Thunderbird, you can see that not only is the
-main check for the running process in place, but there are also two
-sub-checks defined for checking Thunderbird's 'Memory Usage' and 'Version'
-information.
-
-```
-  Thunderbird:  
-    info: My favorite mail client
-    group: Communications            
-    indicators:                                                                   
-      positive:                     
-        status:    
-        icon: 📧
-      negative:                         
-        status:
-        icon: 📧
-    command: | 
-      ps -ef | grep -E "[t]hunderbird"
-    sub_checks:              
-      Memory Usage:                     
-        command: |
-          ps --no-headers -o rss -C thunderbird | awk '{sum+=$1} END {printf "%.2f MB (%.2f GB)\n", sum/1024, sum/1048576}'                                         
-        indicators:  
-          positive:
-              icon: 💾                                                            
-          negative:
-              icon: 💾    
-      Version:    
-        command: |                                                                                                                                                  
-          thunderbird --version
-```
-### Custom Indicators
-
-In the above Thunderbird check configuration example, you can also see the
-custom indicators which can be defined within the config/checks.yml file.
-
-These custom indicators, when defined, will override the default check
-'hi' check indicators (in most cases).
-
-You can see that custom indicators have been defined not just for
-Thunderbird, but also for it's 'Memory Usage' sub-check.  The 'Version'
-sub-check does not have any indicators defined, and so that sub-check will
-use the default indicators.
-
-An example of what the output looks like when `  hi info  ` is run:
-![Sub-checks and Indicators](assets/Screenshot_20240709_034009-subchecks-indicators-output.png)
-
-As you can see, the check description (info field), along with the
-sub-checks are indented slightly from the main checks so that they are
-nicely grouped together.
-
-### Usage
-1.  `python3 host_information.py`
-    
-2.  **(Optional)** Set up a bash function and alias to run the script more easily.
-    
-
-Add an alias to your ~/.bashrc to call this script:
-
-`alias hi="python3 /path/to/hi/hi/host_information.py $@"`
-
-After adding these lines, save the ~/.bashrc file and apply the changes:
-`source ~/.bashrc`
-
-Now you can run the script using the command:
-`hi`
-
-#### Options and Arguments - the *hi* cli
-You typically just want to run ` hi `, but there are a few options and
-arguments to the tool you might want to be aware of.
-
-Arguments:
-
--  'info': Show check description and sub-checks.
--  'watch': Native watch command for ongoing monitoring.
--  'config': Specify another status checks file that resides in 'config/'.
-            E.g. `  hi config my-checks.yml  ` 
 
 
 ### Example Output ###
