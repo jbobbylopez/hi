@@ -421,7 +421,7 @@ def hi_daemon_process(pid,interval=2):
     
     This function calls get_check_results_data() function which
     will either trigger a new call to check_engine_yaml() to generate
-    a new list of check resutls (server context), or it call read_daemon_results() to
+    a new list of check results (server context), or it call read_daemon_results() to
     read current state information (client context).
 
     This function accepts the 'interval' argument which controls the frequency
@@ -522,7 +522,8 @@ def hi_watch(interval=2):
             print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
 
 def hi_report():
-    checks()  # Call the checks() print the system checks
+    #checks()  # Call the checks() print the system checks
+    checks_terminal_output()  # Display system checks
     check_os_eol.main()
     df_bargraph.display_bar_graph()
 
@@ -597,7 +598,7 @@ def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
 
         console.print(table)
 
-def checks():
+def checks_terminal_output():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
     """
