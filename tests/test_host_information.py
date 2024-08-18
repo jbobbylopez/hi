@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath(app_dir))
 import io
 import re
 import host_information
-import check_ubuntu_eol
+import check_os_eol
 import df_bargraph
 
 @pytest.fixture(autouse=True)
@@ -31,10 +31,11 @@ def test_hi_config_argv_watch_info_config(capsys):
     
     # set argv for this test
     sys.argv = ['watch', 'info', 'config', 'example.yml']
-    pattern = r"\[\🔴\]|\[\✅\]"
+    #pattern = r"\[\🔴\]|\[\✅\]"
+    pattern = r"🔴|✅"
     
     try:
-        host_information.display_checks()
+        host_information.hi_report()
         captured = capsys.readouterr()
         output = captured.out
         assert "HOST INFORMATION" in output
@@ -47,13 +48,14 @@ def test_hi_config_argv_watch_info_config(capsys):
 def test_hi_config_argv_config(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
-    pattern = r"\[\🔴\]|\[\✅\]"
+    #pattern = r"\[\🔴\]|\[\✅\]"
+    pattern = r"🔴|✅"
     
     # set argv for this test
     sys.argv = ['config', 'example.yml']
     
     try:
-        host_information.display_checks()
+        host_information.hi_report()
         captured = capsys.readouterr()
         output = captured.out
         assert "HOST INFORMATION" in output
@@ -66,13 +68,14 @@ def test_hi_config_argv_config(capsys):
 def test_hi_config_argv_info(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
-    pattern = r"\[\🔴\]|\[\✅\]"
+    #pattern = r"\[\🔴\]|\[\✅\]"
+    pattern = r"🔴|✅"
     
     # set argv for this test
     sys.argv = ['info']
 
     try:
-        host_information.display_checks()
+        host_information.hi_report()
         captured = capsys.readouterr()
         output = captured.out
         assert "HOST INFORMATION" in output
@@ -85,13 +88,14 @@ def test_hi_config_argv_info(capsys):
 def test_hi_config_argv_watch_info(capsys):
     # backup original sys.argv for restoration later
     original_argv = sys.argv.copy()
-    pattern = r"\[\🔴\]|\[\✅\]"
+    #pattern = r"\[\🔴\]|\[\✅\]"
+    pattern = r"🔴|✅"
     
     # set argv for this test
     sys.argv = ['watch', 'info']
 
     try:
-        host_information.display_checks()
+        host_information.hi_report()
         captured = capsys.readouterr()
         output = captured.out
         assert "HOST INFORMATION" in output
@@ -102,8 +106,9 @@ def test_hi_config_argv_watch_info(capsys):
         sys.argv = original_argv
 
 def test_hi_config_argv_defaults(capsys):
-    host_information.display_checks()
-    pattern = r"\[\🔴\]|\[\✅\]"
+    host_information.hi_report()
+    #pattern = r"\[\🔴\]|\[\✅\]"
+    pattern = r"🔴|✅"
 
     captured = capsys.readouterr()
     output = captured.out
@@ -126,8 +131,8 @@ def test_hi_output_get_ip_address(capsys):
     print("pass: host_information.get_ip_address() | output confirmed.")
 
 def test_hi_df_bargraph_combind_output(capsys):
-    pattern = r"\[\🔴\]|\[\✅\]"
-    host_information.display_checks()
+    pattern = r"🔴|✅"
+    host_information.hi_report()
     df_bargraph.display_bar_graph()
     captured = capsys.readouterr()
     output = captured.out
@@ -158,15 +163,15 @@ def test_df_bargraph_output_display_bar_graph(capsys):
     assert "% Used" in output
     print("Test passed: Filesystem bargraph elements confirmed.")
 
-def test_check_ubuntu_eol_output_main(capsys):
-    check_ubuntu_eol.main()
+def test_check_os_eol_output_main(capsys):
+    check_os_eol.main()
 
     captured = capsys.readouterr()
     output = captured.out
     print("Captured Output: ", output)
     
     assert "Operating System:" in output
-    print("pass: check_ubuntu_eol.mail() | output confirmed.")
+    print("pass: check_os_eol.mail() | output confirmed.")
 
 if __name__ == '__main__':
     pytest.main()
