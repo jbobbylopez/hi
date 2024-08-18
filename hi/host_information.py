@@ -1,44 +1,53 @@
+"""
+'hi' - Host Information: Main Program.
+"""
 import sys
 import time
 import subprocess
+import daemon
+import daemon.pidfile
+import traceback
 import socket
 import re
 import os
+import psutil
 import yaml
 import configparser
-import check_ubuntu_eol
-import df_bargraph
+import lockfile
+
 from datetime import datetime, timedelta
 from rich.console import Console
 from rich.table import Table
 from rich.box import MINIMAL
 from rich.align import Align
 from rich.text import Text
+
 import logging
 import logging.handlers
 import queue
 import json
 
-
-STATE_FILE_PATH = 'state.json'
-STATE = {}
-LOGGING_ENABLED = False
+# 'hi' internal dependencies
+import check_os_eol
+import df_bargraph
 
 def get_script_dir():
     ''' Returns the directory where the script is running from '''
     return os.path.dirname(os.path.abspath(__file__))
-
-# Read in 'config/config.ini'
 script_dir = get_script_dir()
-config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(script_dir), 'config/config.ini'))
 
-def center_text(text):
-    """
-    Center the given text based on the terminal width using Rich.
-    """
-    return Align.center(text)
 
+# Initial State Globals
+STATE = {}
+STATE_FILE_PATH = os.path.join(os.path.dirname(script_dir), 'state.json')
+LOGGING_ENABLED = False
+
+
+
+""" Utilities """
+"""
+Small / uncategorized tools and utilties that support the program functionality.
+"""
 def get_ip_address():
     result = {
         "ip_address": None,
@@ -81,13 +90,25 @@ def get_config_yaml(config_yaml):
         config = yaml.safe_load(file)
     return config
 
+def flush_loggers():
+    """Flush all loggers to ensure all messages are written out."""
+    for handler in logging.getLogger().handlers:
+        handler.flush()
+
+
+
+""" Modules """
+"""
+Modules to the main 'hi' program, which perform specific custom functions.
+Modules are specific to various defined checks, like ExpressVPN, or Data Backups.
+"""
 def module_data_backup(check_record, output, fail_icon, fail_status):
     stat_threshold = config.get('Defaults', 'stat_threshold')
     check_record['stat_date_str'] = None
     threshold_days = int(stat_threshold)  # Assuming 7 days threshold for date_check
     check_record['stat_date_str'] = output.strip().split(' ')[1]
-    check_record['stat_date'] = datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d')
-    if datetime.now() - check_record['stat_date'] > timedelta(days=threshold_days):
+    check_record['stat_date'] = str(datetime.strptime(check_record['stat_date_str'], '%Y-%m-%d'))
+    if datetime.now() - datetime.strptime(check_record['stat_date'], "%Y-%m-%d %H:%M:%S") > timedelta(days=threshold_days):
         check_record['result'] = fail_status
         check_record['icon'] = fail_icon
         check_record['status'] = f"Last modified date {check_record['stat_date_str']} is older than {threshold_days} days"
@@ -114,7 +135,12 @@ def module_expressvpn(check_record, output):
     return check_record
 
 
-def check_record_handler(check, output, indicators):
+
+""" Check Processors """
+"""
+Various filters and processors of checks defined.
+"""
+def check_record_handler(check, group, info, output, indicators):
     # Get INI defaults
     fail_icon = config.get('Defaults', 'fail_icon')
     fail_status = config.get('Defaults', 'fail_status')
@@ -124,8 +150,12 @@ def check_record_handler(check, output, indicators):
 
     check_record = {}
     check_record['name'] = check
+    check_record['group'] = group
+    check_record['info'] = info
+    check_record['status'] = success_status
     check_record['result'] = success_status
     check_record['icon'] = success_icon # Default positive indicator
+    check_record['output'] = output
 
     if 'data backup' in check.lower():
         check_record = module_data_backup(check_record, output, fail_icon, fail_status)
@@ -135,10 +165,13 @@ def check_record_handler(check, output, indicators):
 
     else:
         if indicators:
-            if 'positive' in indicators and 'icon' in indicators['positive']:
-                check_record['icon'] = indicators['positive']['icon']
-            if 'positive' in indicators and 'status' in indicators['positive']:
-                check_record['status'] = indicators['positive']['status']
+            check_record['icon'] = indicators['positive'].get('icon', {})
+            check_record['status'] = indicators['positive'].get('status', {})
+            check_record['result'] = check_record['status']
+            #if 'positive' in indicators and 'icon' in indicators['positive']:
+            #    check_record['icon'] = indicators['positive']['icon']
+            #if 'positive' in indicators and 'status' in indicators['positive']:
+            #    check_record['status'] = indicators['positive']['status']
         try:
             # this is not expected to work if indicators is not set - only
             # to trigger an exception
@@ -151,7 +184,7 @@ def check_record_handler(check, output, indicators):
 
     return check_record
 
-def core_module_subchecks(check_record, sub_checks, indicators, output_messages):
+def core_module_subchecks(check_record, sub_checks, indicators):
     check_record['sub_checks'] = {}
     for sub_check in sub_checks:
         check_record['sub_checks'][sub_check] = {}
@@ -162,33 +195,29 @@ def core_module_subchecks(check_record, sub_checks, indicators, output_messages)
         sub_check_output = check_process(sub_check, sub_check_command).strip()
 
         if sub_check_output:
-            if 'indicators' in sub_checks[sub_check]:
-                sub_check_indicators = sub_checks[sub_check]['indicators']
-                if 'positive' in sub_check_indicators and 'icon' in sub_check_indicators['positive']:
-                    indicator = sub_check_indicators['positive']['icon']
-                if 'positive' in sub_check_indicators and 'status' in sub_check_indicators['positive']:
-                    sub_check_output = sub_check_indicators['positive']['status'] 
-            output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
-            check_record['sub_checks'][sub_check]['icon'] = indicator
-            check_record['sub_checks'][sub_check]['status'] = sub_check_output
-            check_record['sub_checks'][sub_check]['command'] = sub_check_command
+            sub_check_indicators = sub_checks[sub_check].get('indicators', {})
+            positive_indicators = sub_check_indicators.get('positive', {})
+
+            indicator = positive_indicators.get('icon')
+            status = positive_indicators.get('status')
 
         else:
-            if 'indicators' in sub_checks[sub_check]:
-                sub_check_indicators = sub_checks[sub_check]['indicators']
-                if 'negative' in sub_check_indicators and 'icon' in sub_check_indicators['negative']:
-                    indicator = sub_check_indicators['negative']['icon']
-                if 'negative' in sub_check_indicators and 'status' in sub_check_indicators['negative']:
-                    sub_check_output = sub_check_indicators['negative']['status'] 
-            output_messages.append(f"  [{indicator}] {sub_check}: {sub_check_output}")
+            sub_check_indicators = sub_checks[sub_check].get('indicators', {})
+            negative_indicators = sub_check_indicators.get('negative', {})
 
+            indicator = negative_indicators.get('icon')
+            status = negative_indicators.get('status')
+
+        check_record['sub_checks'][sub_check]['name'] = sub_check
         check_record['sub_checks'][sub_check]['icon'] = indicator
-        check_record['sub_checks'][sub_check]['status'] = sub_check_output
+        check_record['sub_checks'][sub_check]['status'] = status
+        check_record['sub_checks'][sub_check]['result'] = status
+        check_record['sub_checks'][sub_check]['output'] = sub_check_output
         check_record['sub_checks'][sub_check]['command'] = sub_check_command
 
     return check_record
 
-def compile_output_messages(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
+def compile_check_results(check, cmd_output, group, info=None, indicators=None, sub_checks=None):
     status = ""
     check_indicators = None
     system_checks = {}
@@ -201,23 +230,31 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
     success_icon = config.get('Defaults', 'success_icon')
     success_status = config.get('Defaults', 'success_status')
     info_icon = config.get('Defaults', 'info_icon')
+    indicator = fail_icon
+    output = fail_status
+
 
     # The below 'if output:' statement means that the command completed
     # successfully, and 'output' contains any data returned by the executed
     # command.  'check' contains the name of the check in config/checks.yml.
     if cmd_output:
-        check_record = check_record_handler(check, cmd_output, indicators)
-        output_messages.append(f"[{check_record['icon']}] {check}: {check_record['status']}")
+        check_record = check_record_handler(check, group, info, cmd_output, indicators)
 
     else:
-        indicator = fail_icon
-        output = fail_status
-
+        check_record['name'] = check
+        check_record['info'] = info
+        check_record['group'] = group
+        check_record['icon'] = indicator
+        check_record['result'] = output
+        check_record['status'] = fail_status
         if indicators:
             try:
                 indicator = indicators.get('negative', {}).get('icon', indicator)
                 if 'negative' in indicators and 'status' in indicators['negative']:
                     output = indicators.get('negative', {}).get('status', fail_status)
+                    check_record['result'] = indicators.get('negative', {}).get('status', fail_status) 
+                    check_record['status'] = indicators.get('negative', {}).get('status', fail_status)
+                    check_record['icon'] = indicators.get('negative', {}).get('icon', fail_icon)
 
             except Exception as e:
                 print(f"* Warning: Potential checks file configuration error.")
@@ -226,30 +263,30 @@ def compile_output_messages(check, cmd_output, group, info=None, indicators=None
                 print(f" Using default indicators.")
                 indicator = fail_icon
                 
-        output_messages.append(f"[{indicator}] {check}: {output}")
-        check_record['name'] = check
-        check_record['result'] = output
-        check_record['icon'] = indicator
-        check_record['status'] = fail_status
-
-
-    # Append info: value if present
-    if info:
-        output_messages.append(f"  [{info_icon}] {info}")
-        check_record['info'] = info
-
     # Append sub_checks if present
     if sub_checks:
-        check_record = core_module_subchecks(check_record, sub_checks, indicators, output_messages)
+        check_record = core_module_subchecks(check_record, sub_checks, indicators)
+
+    current_state = {check_record['name']:check_record['status']}
+    update_system_state(current_state, check_record)
+
+def get_check_results_data(groups, info):
+    ''' This function aggregates all the check results into a dict, and
+    returns that data for parsing and display output processing '''
+
+    if 'daemon' in sys.argv:
+        info = "info"
+        for group in groups:
+            check_engine_yaml(group, info)
+    else:
+        check_results_data = state()
+        return check_results_data
 
 
-    current_state = {check_record['name']:check_record['result'] }
-    check_system_state(current_state, check_record)
-
-    final_output = "\n".join(output_messages)
-    return final_output
-
-
+""" YAML Processors """
+"""
+Various YAML file and check processors
+"""
 def check_argv_config_yaml_file():
     yml_file_path = None
     has_yml_file = None
@@ -267,7 +304,6 @@ def check_argv_config_yaml_file():
     
     if has_config and has_yml_file:
         return "config/" + yml_file_path
-
 
 def check_engine_yaml(check_type, verbose=False):
     group_output = []
@@ -297,27 +333,247 @@ def check_engine_yaml(check_type, verbose=False):
 
     for check, attribs in checks.items():
         if attribs['group'] == check_type:
-            output = check_process(check, attribs['command'])
+            output = check_process(check, attribs['command']) # The actual execution of commands
             sub_checks = attribs.get('sub_checks') if verbose else None
             info = attribs.get('info') if verbose else None
             indicators = attribs.get('indicators')
-            group_output.append(compile_output_messages(check, output, check_type, info, indicators, sub_checks))
-
-    return group_output
-
+            compile_check_results(check, output, check_type, info, indicators, sub_checks)
 
 def enable_check_info():
-    check_info = 0
-    check_info = 1 in sys.argv or None
+    check_info = None
+    if 'info' in sys.argv:
+        check_info = 1
+    else:
+        check_info = None
     return check_info
 
-def generate_rich_tables(groups, group_statuses, table_colors, num_columns):
+
+
+""" Daemon controls """
+"""
+Functions that support daemon initialization and functionality
+"""
+def read_pid_file(pidfile):
+    try:
+        with open(pidfile, 'r') as f:
+            pid = int(f.read().strip())
+        return pid
+    except (IOError, ValueError):
+        return None
+
+def is_process_running(pid):
+    try:
+        return psutil.pid_exists(pid) and psutil.Process(pid).is_running()
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        return False
+
+def hi_daemon():
+    ''' Hi Daemon '''
+    '''
+    This function sets up the daemon context (server context) of the program.
+
+    This allows the application to run headless (without the need for GUI or command-line).
+
+    The application would run as a daemon in the background, and would publish state
+    information that could be parsed by the hi command line client (client context).
+    '''
+    pidfile = '/tmp/hi_daemon.pid'
+    pid = read_pid_file(pidfile)
+
+    if pid and is_process_running(pid):
+        print(f"hi_daemon() is already running (PID: {open(pidfile).read().strip()}).")
+        sys.exit(1)
+    elif pid: #PID file exists but process not running
+        print(f"Removing stale PID file (PID: {pid}).")
+        os.remove(pidfile)
+
+    try:
+        log_state_change("hi_daemon()", "offline", "starting..")
+        console.print(f"hi_daemon() started.")
+        with daemon.DaemonContext(
+            working_directory='.',  # Ensure this is a valid directory for your process
+            umask=0o022,
+            pidfile=daemon.pidfile.PIDLockFile(pidfile),
+            stderr=sys.stderr,  # Redirect stderr to catch daemon errors
+            stdout=sys.stdout   # Redirect stdout to catch daemon logs
+        ):
+            pid = read_pid_file(pidfile)
+            hi_daemon_process(pid,2)
+    except PermissionError as e:
+        console.print(f"\n[Permission error: {e}]")
+        logging.debug(f"Permission error: {e}")
+    except FileNotFoundError as e:
+        console.print(f"\n[File not found: {e}]")
+        logging.debug(f"File not found: {e}")
+    except Exception as e:
+        console.print(f"\n[An error occurred: {e}]")
+        console.print(f"Exception in daemon context: %s", str(e))
+        console.print(f"Traceback: %s", traceback.format_exc())
+    finally:
+        log_state_change("hi_daemon()", "running", "shutting down")
+        if os.path.exists(pidfile):  # Cleanup the PID file
+            os.remove(pidfile)
+            log_state_change("hi_daemon()", f"pidfile ({pid})", "pid file removed")
+
+def hi_daemon_process(pid,interval=2):
+    """
+    Main daemon process handler
+    
+    This function calls get_check_results_data() function which
+    will either trigger a new call to check_engine_yaml() to generate
+    a new list of check resutls (server context), or it call read_daemon_results() to
+    read current state information (client context).
+
+    This function accepts the 'interval' argument which controls the frequency
+    of check execution and state update.
+    """
+    configure_logging(ini_log_file)
+    console.print(f"hi_daemon_process() running (PID: {pid}).")
+    log_state_change("hi_daemon_process()", "started", "running..")
+
+    local_ip_result = get_ip_address()
+    hostname_result = get_hostname_address()
+    script_dir = get_script_dir()
+    hi_dir     = os.path.dirname(script_dir)
+    groups = get_config_yaml(os.path.join(hi_dir, "config/groups.yml"))['groups']
+    check_results_data = None
+
+    if enable_check_info():
+        info = 'info' in sys.argv
+    else:
+        info = None
+
+    while True:
+        time.sleep(interval)  # Wait for the specified interval before updating again
+
+        # Get all status messages for each target group in 'config/groups.yaml'
+        check_results_data = get_check_results_data(groups, info)
+
+def state(state = {}):
+    if state == {}:
+        try:
+            state = read_initial_state()
+        except Exception as e:
+            console.print(f"Exception {e}")
+    return state
+
+def read_initial_state():
+    if not os.path.isfile(STATE_FILE_PATH):
+        return {}
+    with open(STATE_FILE_PATH, 'r') as f:
+        return json.load(f)
+
+def write_state(state):
+    try:
+        with open(STATE_FILE_PATH, 'w') as f:
+            json.dump(state, f, indent=4)
+    except IOError as e:
+        print(f"An error occurred while writing to the file: {e}")
+
+def update_system_state(current_state, check_record):
+    # Dictionary to store the initial state
+    last_known_state = state(STATE)
+    previous_state = None
+
+    # Compare current state with last known state
+    for check_name, new_state in current_state.items():
+        if check_name == check_record['name']:
+            try:
+                previous_state = last_known_state.get(check_name)
+                if previous_state:
+                    if previous_state['status'] != new_state:
+                        if LOGGING_ENABLED:
+                            log_state_change(check_name, previous_state['status'], new_state)
+
+                # Update the state file with the new state
+                last_known_state[check_name] = check_record
+                write_state(last_known_state)
+            except Exception as e:
+                console.print(f"\n[An error occurred: {e}]")
+                console.print(f"Exception in daemon context: %s", str(e))
+                console.print(f"Traceback: %s", traceback.format_exc())
+
+
+""" Terminal Control and Command-line Interfaces """
+"""
+The following functions support curses terminal output and control, along with
+processing of command-line arguments.
+"""
+def hide_cursor_clear_screen():
+    print("\033[?25l", end='')  # Hide the cursor
+    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
+    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
+
+def hi_watch(interval=2):
+    """
+    Continuously display the output of the checks(), updating every 'interval' seconds.
+    """
+    hide_cursor_clear_screen()
+    hi_watch_report()
+    if 'watch' in sys.argv:
+        try:
+            while True:
+                time.sleep(interval)  # Wait for the specified interval before updating again
+                hi_watch_report()
+        except KeyboardInterrupt:
+            console.clear()
+            console.print('hi: continuous monitoring stopped.')
+        finally:
+            print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
+
+def hi_report():
+    checks()  # Call the checks() print the system checks
+    check_os_eol.main()
+    df_bargraph.display_bar_graph()
+
+
+def hi_watch_report():
+    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
+    hi_report()
+    console.print(center_text("[🟢] watching.. (ctrl-c to quit)"), style="bold green")
+    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
+
+
+
+""" 'rich' terminal control and display """
+"""
+Various functions that support terminal output display control.
+"""
+def center_text(text):
+    """
+    Center the given text based on the terminal width using Rich.
+    """
+    return Align.center(text)
+
+def generate_rich_tables(groups, check_results_data, table_colors, num_columns):
+    info_icon = config.get('Defaults', 'info_icon')
+    all_group_statuses = {group: [] for group in groups}
+
+    # Organize data by groups
+    for key, value in check_results_data.items():
+        group = value.get('group', 'No group')
+        status = f"{value['icon']} {value['name']} - {value['status']}"
+        info = f"{value['info']}"
+
+        sub_checks = None
+        if 'sub_checks' in value:
+            sub_checks = value['sub_checks']
+
+        if group in groups:
+            all_group_statuses[group].append(status)
+            if enable_check_info() and value['info']:
+                all_group_statuses[group].append(f"  [{info_icon}] {info}")
+            if sub_checks:
+                for sub_check in sub_checks:
+                    all_group_statuses[group].append(f"    [{sub_checks[sub_check]['icon']}] {sub_check}: {sub_checks[sub_check]['status']} {sub_checks[sub_check]['output']}")
+
+    # Create tables
     for i in range(0, len(groups), num_columns):
         console = Console()
         table = Table(
-            show_header=True, 
+            show_header=True,
             header_style=table_colors["header_style"],
-            expand=True, 
+            expand=True,
             box=MINIMAL,
             border_style=table_colors["border_style"],
             style=table_colors["default_style"]
@@ -327,12 +583,13 @@ def generate_rich_tables(groups, group_statuses, table_colors, num_columns):
         for group in current_groups:
             table.add_column(group, style=table_colors["column_style"], justify="left", no_wrap=True, width=40)
 
-        max_length = max(len(group_statuses[group]) for group in current_groups)
+        max_length = max(len(all_group_statuses[group]) for group in current_groups)
 
         for j in range(max_length):
             row = [
-                Text(group_statuses[group][j], style=table_colors['text_style']) 
-                if j < len(group_statuses[group]) 
+                #Text(f"hello! {max_length}/{j} - {len(all_group_statuses[group])}")
+                Text(all_group_statuses[group][j], style=table_colors['text_style'])
+                if j < len(all_group_statuses[group])
                 else ""
                 for group in current_groups
             ]
@@ -340,7 +597,7 @@ def generate_rich_tables(groups, group_statuses, table_colors, num_columns):
 
         console.print(table)
 
-def display_checks():
+def checks():
     """
     Display categorized checks in Rich tables, handling unequal lists gracefully.
     """
@@ -378,7 +635,7 @@ def display_checks():
     console.print(' ' * (console.width - len(header_text)), style=report_colors['ip_style'])
 
     # Get all status messages for each target group in 'config/groups.yaml'
-    group_statuses = {group: check_engine_yaml(group, info) for group in groups}
+    check_results_data = get_check_results_data(groups, info)
 
     # Rich table output
     # read number_of_columns per table specified in config.ini
@@ -390,42 +647,11 @@ def display_checks():
     table_colors['text_style'] = "" if config.get('Tables', 'text_style') in [None, "None"] else config.get('Tables', 'text_style')
 
     # Generate the tables
-    generate_rich_tables(groups, group_statuses, table_colors, num_columns)
-
-def display_hi_report():
-    display_checks()  # Call the display_checks function to print the system checks
-    check_ubuntu_eol.main()
-    df_bargraph.display_bar_graph()
+    generate_rich_tables(groups, check_results_data, table_colors, num_columns)
 
 
-def display_hi_watch_report():
-    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
-    display_hi_report()
-    console.print(center_text("[🟢] watching.. (ctrl-c to quit)"), style="bold green")
-    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
 
-def hide_cursor_clear_screen():
-    print("\033[?25l", end='')  # Hide the cursor
-    print("\033[H", end='')  # ANSI escape code to move cursor to top-left
-    print("\033[J", end='')  # Clear the rest of the screen from the cursor position
-
-def hi_watch(interval=2):
-    """
-    Continuously display the output of the display_checks function, updating every 'interval' seconds.
-    """
-    hide_cursor_clear_screen()
-    display_hi_watch_report()
-    if 'watch' in sys.argv:
-        try:
-            while True:
-                time.sleep(interval)  # Wait for the specified interval before updating again
-                display_hi_watch_report()
-        except KeyboardInterrupt:
-            console.clear()
-            console.print("\n[hi: continuous monitoring stopped.]")
-        finally:
-            print("\033[?25h", end='')  # Ensure the cursor is shown when exiting
-
+""" Logging and Log Management """
 # Custom JSON formatter for log records
 class JsonFormatter(logging.Formatter):
     def format(self, record):
@@ -468,44 +694,22 @@ def log_state_change(check_name, previous_state, new_state):
         }
     )
 
-def read_initial_state():
-    if not os.path.isfile(STATE_FILE_PATH):
-        return {}
-    with open(STATE_FILE_PATH, 'r') as f:
-        return json.load(f)
 
-def state(state):
-    if state == {}:
-        global STATE
-        STATE = read_initial_state()
-    return STATE
 
-def write_state(state):
-    with open(STATE_FILE_PATH, 'w') as f:
-        json.dump(state, f, indent=4)
-
-def check_system_state(current_state, check_record):
-    # Dictionary to store the initial state
-    last_known_state = state(STATE)
-
-    # Compare current state with last known state
-    for check_name, new_state in current_state.items():
-        if check_name == check_record['name']:
-            previous_state = last_known_state.get(check_name)
-            if previous_state != new_state:
-                last_known_state[check_name] = new_state
-
-                # log state change
-                if LOGGING_ENABLED:
-                    log_state_change(check_name, previous_state, new_state)
-
-                # Update the state file with the new state
-                write_state(last_known_state)
+""" MAIN PROGRAM """
+"""
+'hi' program control flow starts here.
+"""
+# Read in 'config/config.ini'
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(script_dir), 'config/config.ini'))
 
 # Configure logging if logging is enabled
 try:
     LOGGING_ENABLED = config.get('Logging', 'enable_logging')
     ini_log_file = config.get('Paths', 'log_file')
+    ini_log_file = os.path.join(os.path.dirname(script_dir), ini_log_file)
+    config.get('Paths', 'log_file')
     if ini_log_file and LOGGING_ENABLED.lower() == "true":
         configure_logging(ini_log_file)
 except Exception as e:
@@ -516,5 +720,7 @@ except Exception as e:
 console = Console()
 if 'watch' in sys.argv:
     hi_watch()
+elif 'daemon' in sys.argv:
+    hi_daemon()
 else:
-    display_hi_report()
+    hi_report()

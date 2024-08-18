@@ -49,7 +49,7 @@ changes may already be in development progress.
 #### Design Improvements ####
 - Code imporovements - refactoring to increase modularity and maintainability
 
-    - API friendly data structures
+    - [🚧] API friendly data structures
         - Improve the structure of messages so this data can be exposed in
           an API for use in another view, like an HTML report.
 
@@ -77,12 +77,12 @@ changes may already be in development progress.
 - Include testing for state.json
 
 #### Logical Separation of Concerns ####
-- Externalization of hard-coded configs into config/config.ini
-
+- [✅] Externalization of hard-coded configs into config/config.ini
 
 
 ## Likely Features and Improvements ##
 Not guaranteed, but likely to be implemented if time permits.
+
 
 #### Design Improvements ####
 - Breaking checks.yml out into multiple files. I imagine that if I'm going to implement
@@ -127,7 +127,7 @@ tools and pipelines.
 
 #### Security ####
 - Making use of ssh keys to execute commands on remote hosts.
-- Logging, state change tracking.
+- [🚧] Logging, state change tracking.
 
 
 
