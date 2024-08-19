@@ -1,0 +1,9 @@
+checks:
+  Apache NiFi:
+    group: Data
+    command: |
+      ps -ef | grep -i '[o]pt/nifi'
+  Open WebUI:
+    group: Data  # Updated to Data group
+    command: |
+      curl localhost:3000 --silent | grep '<title>' | sed -e 's/^.*title>Open WebUI.*$/Open WebUI/'

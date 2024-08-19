@@ -1,0 +1,21 @@
+checks:
+  qbittorrent:
+    info: qbittorrent client
+    group: Media
+    command: |
+      ps -ef | grep -E '([q]bittorrent)'
+  minidlna:
+    info: UPnP server (pictures/videos)
+    group: Media
+    command: |
+      ps -ef | grep -E '([m]inidlna)'
+  Steam:
+    info: Steam Games Desktop Client
+    group: Media
+    command: |
+      ps -ef | grep -E '([s]team.sh)'
+  CUPS:
+    info: CUPS print service
+    group: Media
+    command: |
+      ps -ef | grep -E "[c]ups"

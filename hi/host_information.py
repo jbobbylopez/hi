@@ -312,18 +312,24 @@ def check_engine_yaml(check_type, verbose=False):
     hi_dir     = os.path.dirname(script_dir)
 
     # read checks_file specified in config.ini
+    #ini_checks_file = config.get('Paths', 'checks_file')
+    #checks_yaml_file = ini_checks_file
+    checks_yaml_file = None
+
+    # We do not read ini file for ini_checks_file any longer.
+    # Checks are defined in their associated 'config/{group}.yml" file.
+    group_checks_file = f"config/{check_type}.yml"
+
+    # read user-specified checks_file
     # This is useful for quick testing other checks.yml files with
     # different names.
     # E.g.:  hi config config/my_custom_checks.yml
-    ini_checks_file = config.get('Paths', 'checks_file')
-
-    # read user-specified checks_file
     cli_checks_file = check_argv_config_yaml_file()
 
     if cli_checks_file:
         checks_yaml_file = cli_checks_file
-    else:
-        checks_yaml_file = ini_checks_file
+    elif os.path.isfile(os.path.join(hi_dir,group_checks_file)):
+        checks_yaml_file = group_checks_file
 
     try:
         checks = get_config_yaml(os.path.join(hi_dir, checks_yaml_file))

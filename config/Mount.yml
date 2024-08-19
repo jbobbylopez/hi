@@ -1,0 +1,47 @@
+checks:
+  Dropbox:
+    group: Mount
+    indicators:
+      positive:
+        status: is running
+        icon: 📂
+      negative:
+        status: is not running
+        icon: 📂
+    command: |
+      ps -ef | grep [d]ropbox
+    info: Monitoring that dropbox process is running
+  Galaxy S20 (sshfs):
+    info: sshfs -p 10022  192.168.1.242:/ /mnt/GalaxyS20/
+    indicators:
+      positive:
+        icon: 📲 
+        status: is mounted
+      negative:
+        icon: 📱
+        status: is not mounted
+    group: Mount
+    command: |
+      mount | grep -i '/mnt/GalaxyS20'
+  vdc2022nas:
+    indicators:
+      positive:
+        icon: 📲 
+        status: is mounted
+      negative:
+        icon: 📱
+        status: is not mounted
+    group: Mount
+    command: |
+      mount | grep -i '/media/jbl/vdc2022nas'
+  wdred-8tb-pro-01:
+    indicators:
+      positive:
+        icon: 📲 
+        status: is mounted
+      negative:
+        icon: 📱
+        status: is not mounted
+    group: Mount
+    command: |
+      mount | grep -i '/media/jbl/wdred-8tb-pro-01'

@@ -1,0 +1,25 @@
+checks:
+  Thunderbird:
+    info: My favorite mail client
+    group: Communications
+    indicators:
+      positive:
+        status:
+        icon: 📧
+      negative:
+        status:
+        icon: 📧
+    command: |
+      ps -ef | grep -E "[t]hunderbird"
+    sub_checks:
+      Memory Usage:
+        command: |
+          ps --no-headers -o rss -C thunderbird | awk '{sum+=$1} END {printf "%.2f MB (%.2f GB)\n", sum/1024, sum/1048576}'
+        indicators:
+          positive:
+              icon: 💾
+          negative:
+              icon: 💾
+      Version:
+        command: |
+          thunderbird --version

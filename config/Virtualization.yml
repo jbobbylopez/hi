@@ -1,0 +1,5 @@
+checks:
+  dockerd:
+    group: Virtualization
+    command: |
+      ps -ef | grep -E "[/]usr/bin/dockerd"

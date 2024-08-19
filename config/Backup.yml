@@ -1,0 +1,13 @@
+checks:
+  Data Backup:
+    info: My custom backup orchestration solution
+    indicators:
+      positive:
+        status:
+        icon: ✅
+      negative:
+        status:
+        icon: ❌
+    group: Backup
+    command: |
+      stat ~/.logs/.jbl-backup.log | grep ^Modify

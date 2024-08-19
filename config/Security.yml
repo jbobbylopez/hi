@@ -1,0 +1,70 @@
+checks:
+  Systems:
+    group: Security
+    indicators:
+      positive:
+        icon: 💡
+      negative:
+        icon: 💡
+        status: Online 
+    command: true
+    sub_checks:
+      PHE01:
+        indicators:
+          positive:
+            icon: 💡
+          negative:
+            icon:
+        command: |
+          result=$(ping -W 0.2 -q -c 1 192.168.1.135 && echo "True" || echo "False"); echo $result | awk '{print $2" ping check"}'
+      PEN01:
+        indicators:
+          positive:
+            icon: 💡
+          negative:
+            icon:
+        command: |
+          result=$(ping -W 0.2 -q -c 1 192.168.1.100 && echo "True" || echo "False"); echo $result | awk '{print $2" ping check"}'
+      vdc:
+        indicators:
+          positive:
+            icon: 💡
+          negative:
+            icon:
+        command: |
+          result=$(ping -W 0.2 -q -c 1 192.168.1.143 && echo "True" || echo "False"); echo $result | awk '{print $2" ping check"}'
+  ExpressVPN:
+    info: For general privacy and security.
+    group: Security
+    indicators:
+      positive:
+        status: Connected
+        icon: 🔑
+      negative:
+        status: Not Connected.
+        icon: 🔑
+    command: |
+      expressvpn status | grep -i connected | sed "s/\\x1b\\[[0-9;]*[mGK]//g" | sed -e 's/Express//g'
+    sub_checks:
+      Updates:
+        command: |
+          expressvpn status | grep update | sed "s/\\x1b\\[[0-9;]*[mGK]//g"
+        indicators:
+          positive:
+            status: Update Available!
+            icon: 💡
+          negative:
+            status: No update available.
+            icon: ⚫
+  KeepassXC:
+    group: Security
+    command: |
+      ps -ef | grep -i '[b]in/keepassxc'
+  sshd:
+    group: Security
+    command: |
+      ps -ef | grep -E '([s]shd)'
+  signal-desktop:
+    group: Security
+    command: |
+      ps -ef | grep -E "[/]opt/Signal/signal-desktop"

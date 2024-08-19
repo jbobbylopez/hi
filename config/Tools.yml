@@ -1,0 +1,38 @@
+checks:
+  vi:
+    group: Tools
+    indicators:
+      positive:
+        status: editor in use
+        icon: 💡
+      negative:
+        status: editor not in use.
+        icon: ⚫
+    command: |
+      ps -ef | grep -E "pts.* [v]i($| .*)"
+    sub_checks:
+      Memory Usage:
+        command: |
+          ps --no-headers -o rss -C vi | awk '{sum+=$1} END {printf "%.2f MB (%.2f GB)\n", sum/1024, sum/1048576}'
+  Midnight Commander:
+    indicators:
+      positive:
+        status: is running.
+        icon: 💡
+      negative:
+        icon: ⚫
+        status: is not running.
+    group: Tools
+    command: |
+      ps -ef | grep "\ mc$"
+  tmux:
+    indicators:
+      positive:
+        status: is running.
+        icon: 💡
+      negative:
+        status: is not running.
+        icon: ⚫
+    group: Tools
+    command: |
+      ps -ef | grep "\ tmux$"
