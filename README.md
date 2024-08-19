@@ -128,46 +128,58 @@ There are currently three (3) configuration files that 'hi' depends on.  They ar
 follows:
 - config/config.ini
 - config/groups.yml
-- config/checks.yml
+
+Depending on the groups you define in `groups.yml`, you will need a single .yml file defined for each group.  You will see by default the following configuration files are already in place:
+
+- config/Security.yml
+- config/Data.yml
+- config/Tools.yml
+- config/Media.yml
+- .. and so on.
 
 ## config/config.ini ####
 This file is the main configuration file that tells 'hi' what files it needs and options it should enable.
 
-For example, you can use the 'checks_file' to specify a custom location of
-the specific checks.yml formatted file you would like to use.
-
-Also, you can configure table output options to customize how your reports
+You can configure table output options to customize how your reports
 displayed.
 
 ##### config.ini example #####
 ```
+[Defaults]
+fail_icon = 🔴
+fail_status = stopped
+success_icon = ✅
+success_status = running
+info_icon = 📘
+stat_threshold = 7
+
 [Paths]
-checks_file = config/checks.yml
-log_file = logs/hi_log.json
+log_file = hi_log.json
 
 [Report]
-header_style = black on yellow
-hostname_style = yellow on black
-ip_style = bold green on black
+header_style = bold dark_blue on cyan
+hostname_style = bright_blue on black
+ip_style = bold bright_green on black
 
 [Tables]
 number_of_columns = 3 
-default_style = bold magenta
-header_style = bold magenta
-border_style = bold bright_green
-column_style = bright_green on magenta
+default_style = green
+header_style = bright_green on black
+border_style = bright_white 
+column_style = bright_blue
 text_style = None
 
+[OS Bar]
+os_text_style = black on green
+
 [Logging]
-enable_logging = false
+enable_logging = true
 
 ```
 
-## config/checks.yml ##
-This is where the magic happens.  The `  config/checks.yml  ` file is where
-your system status checks are defined.  This file can be renamed to
-anything you want, but the new name or location will need to be updated in
-your `config.ini` file for it to be used.
+## config/<checks_group>.yml ##
+This is where the magic happens.  The `  config/<checks_group>.yml  ` file is where
+your system status checks are defined. The naming convention of this file must follow the group names identified you config/groups.yml.
 
 This configuration file allows you to define any number of system status checks to monitor services or functionalities available via the command line.
 
@@ -183,7 +195,7 @@ checks:
 ```
 
 Several examples of various system status checks are available for review
-or reuse in the ` config/checks.yml ` file that comes with this tool.
+or reuse in the ` config/example.yml ` files that comes with this tool.
 
 
 ### sub-checks
