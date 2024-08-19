@@ -310,13 +310,8 @@ def check_engine_yaml(check_type, verbose=False):
     sub_checks = None
     script_dir = get_script_dir()
     hi_dir     = os.path.dirname(script_dir)
-
-    # read checks_file specified in config.ini
-    #ini_checks_file = config.get('Paths', 'checks_file')
-    #checks_yaml_file = ini_checks_file
     checks_yaml_file = None
 
-    # We do not read ini file for ini_checks_file any longer.
     # Checks are defined in their associated 'config/{group}.yml" file.
     group_checks_file = f"config/{check_type}.yml"
 
