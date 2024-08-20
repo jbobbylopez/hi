@@ -633,7 +633,7 @@ def checks_terminal_output():
     console.print(' | ', end="", style=report_colors['ip_style'])
     console.print(f"{hostname}", end="", style=report_colors['hostname_style'])
     console.print(' | ', end="", style=report_colors['ip_style'])
-    console.print(f"{local_ip}", end="", style=report_colors['ip_style'])
+    console.print(f"{local_ip}", end="", style=report_colors['ip_style'], highlight=False)
     console.print(' ' * (console.width - len(header_text)), style=report_colors['ip_style'])
 
     # Get all status messages for each target group in 'config/groups.yaml'
