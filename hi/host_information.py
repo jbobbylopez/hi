@@ -95,6 +95,33 @@ def flush_loggers():
     for handler in logging.getLogger().handlers:
         handler.flush()
 
+def check_argv_config_yaml_file():
+    yml_file_path = None
+    has_yml_file = None
+    has_config = 'config' in sys.argv
+
+    # Check each argument for a .yml file extension
+    for arg in sys.argv:
+        if arg.endswith('.yml'):
+            yml_file_path = arg
+            has_yml_file = 1
+            break  # Stop at the first .yml file found
+
+    if has_config and not has_yml_file:
+        raise ValueError("No '*.yml' file path found in arguments.")
+    
+    if has_config and has_yml_file:
+        return "config/" + yml_file_path
+
+def enable_check_info():
+    check_info = None
+    if 'info' in sys.argv:
+        check_info = 1
+    else:
+        check_info = None
+    return check_info
+
+
 
 
 """ Modules """
@@ -287,24 +314,6 @@ def get_check_results_data(groups, info):
 """
 Various YAML file and check processors
 """
-def check_argv_config_yaml_file():
-    yml_file_path = None
-    has_yml_file = None
-    has_config = 'config' in sys.argv
-
-    # Check each argument for a .yml file extension
-    for arg in sys.argv:
-        if arg.endswith('.yml'):
-            yml_file_path = arg
-            has_yml_file = 1
-            break  # Stop at the first .yml file found
-
-    if has_config and not has_yml_file:
-        raise ValueError("No '*.yml' file path found in arguments.")
-    
-    if has_config and has_yml_file:
-        return "config/" + yml_file_path
-
 def check_engine_yaml(check_type, verbose=False):
     group_output = []
     sub_checks = None
@@ -340,13 +349,6 @@ def check_engine_yaml(check_type, verbose=False):
             indicators = attribs.get('indicators')
             compile_check_results(check, output, check_type, info, indicators, sub_checks)
 
-def enable_check_info():
-    check_info = None
-    if 'info' in sys.argv:
-        check_info = 1
-    else:
-        check_info = None
-    return check_info
 
 
 
