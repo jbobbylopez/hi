@@ -4,9 +4,10 @@ checks:
     indicators:
       positive:
         icon: 💡
+        status: Online 
       negative:
         icon: 💡
-        status: Online 
+        status: Offline
     command: true
     sub_checks:
       PHE01:
@@ -16,7 +17,7 @@ checks:
           negative:
             icon:
         command: |
-          result=$(ping -W 0.2 -q -c 1 192.168.1.135 && echo "True" || echo "False"); echo $result | awk '{print $2" ping check"}'
+          result=$(ping -W 0.2 -q -c 1 192.168.50.11 && echo "True" || echo "False"); echo $result | awk '{print $2" ping check"}'
       PEN01:
         indicators:
           positive:
@@ -24,7 +25,7 @@ checks:
           negative:
             icon:
         command: |
-          result=$(ping -W 0.2 -q -c 1 192.168.1.100 && echo "True" || echo "False"); echo $result | awk '{print $2" ping check"}'
+          result=$(ping -W 0.2 -q -c 1 192.168.50.9 && echo "True" || echo "False"); echo $result | awk '{print $2" ping check"}'
       vdc:
         indicators:
           positive:
@@ -32,7 +33,7 @@ checks:
           negative:
             icon:
         command: |
-          result=$(ping -W 0.2 -q -c 1 192.168.1.143 && echo "True" || echo "False"); echo $result | awk '{print $2" ping check"}'
+          result=$(ping -W 0.2 -q -c 1 192.168.50.3 && echo "True" || echo "False"); echo $result | awk '{print $2" ping check"}'
   ExpressVPN:
     info: For general privacy and security.
     group: Security
@@ -68,3 +69,14 @@ checks:
     group: Security
     command: |
       ps -ef | grep -E "[/]opt/Signal/signal-desktop"
+  pihole-dns:
+    group: Security
+    command: |
+      curl -L http://vdc.jbldata.com:8053
+    indicators:
+      positive:
+        status: Pihole Is Running.
+        icon: ✅
+      negative:
+        status: Pihole Is NOT Running.
+        icon: 🔴
