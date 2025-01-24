@@ -72,7 +72,7 @@ checks:
   pihole-dns:
     group: Security
     command: |
-      curl -L http://vdc.jbldata.com:8053
+      curl -L http://localhost:8053
     indicators:
       positive:
         status: Pihole Is Running.
